@@ -6,20 +6,19 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
-
 export default class Renderer {
     public experience: Experience;
     public sizes: { width: number; height: number };
     public scene: THREE.Scene;
     public camera: { instance: THREE.Camera };
     public instance!: THREE.WebGLRenderer;
-    private cursorTexture : THREE.WebGLRenderTarget
-    private sceneTexture : THREE.WebGLRenderTarget
-    private orthographicCamera : THREE.OrthographicCamera;
-    private composer : EffectComposer | null = null;
+    private cursorTexture: THREE.WebGLRenderTarget
+    private sceneTexture: THREE.WebGLRenderTarget
+    private orthographicCamera: THREE.OrthographicCamera;
+    private composer: EffectComposer | null = null;
     public strength = 0
-    private renderScene : RenderPass
-    private bloomPass : UnrealBloomPass
+    private renderScene: RenderPass
+    private bloomPass: UnrealBloomPass
 
     private params = {
         threshold: 0.07,
@@ -38,7 +37,7 @@ export default class Renderer {
         this.setInstance();
     }
 
-    public setInstance(strength=0, r=0, t=0): void {
+    public setInstance(strength = 0, r = 0, t = 0): void {
         this.instance = new THREE.WebGLRenderer({
             canvas: this.experience.canvas,
             antialias: true,
@@ -62,7 +61,7 @@ export default class Renderer {
         // this.bloomPass.strength = this.params.strength;
         // this.bloomPass.radius = this.params.radius;
 
-        this.composer = new EffectComposer( this.instance );
+        this.composer = new EffectComposer(this.instance);
         // this.composer.addPass( this.renderScene );
         // this.composer.addPass( this.bloomPass );
 
@@ -70,34 +69,34 @@ export default class Renderer {
 
 
 
-            // const bloomFolder = this.experience.gui.addFolder( 'Post Processing' );
+        // const bloomFolder = this.experience.gui.addFolder( 'Post Processing' );
 
-            // bloomFolder.add( this.params, 'threshold', 0.0, 10.0 ).onChange( ( value ) => {
+        // bloomFolder.add( this.params, 'threshold', 0.0, 10.0 ).onChange( ( value ) => {
 
-            //     this.bloomPass.threshold = Number( value );
-    
-            // } );
-    
-            // bloomFolder.add( this.params, 'strength', 0.0, 30.0 ).onChange( ( value ) => {
-    
-            //     this.bloomPass.strength = Number( value );
-    
-            // } );
-    
-            // bloomFolder.add( this.params, 'radius', 0.0, 10.0 ).step( 0.01 ).onChange( ( value ) => {
-    
-            //     this.bloomPass.radius = Number( value );
-    
-            // } );
-            // this.experience.gui.add( this.params, 'exposure', 0.0, 10.0 ).step( 0.01 ).onChange( ( value ) => {    
-            //     this.instance.toneMappingExposure  = Number( value );
-            // } );
+        //     this.bloomPass.threshold = Number( value );
+
+        // } );
+
+        // bloomFolder.add( this.params, 'strength', 0.0, 30.0 ).onChange( ( value ) => {
+
+        //     this.bloomPass.strength = Number( value );
+
+        // } );
+
+        // bloomFolder.add( this.params, 'radius', 0.0, 10.0 ).step( 0.01 ).onChange( ( value ) => {
+
+        //     this.bloomPass.radius = Number( value );
+
+        // } );
+        // this.experience.gui.add( this.params, 'exposure', 0.0, 10.0 ).step( 0.01 ).onChange( ( value ) => {    
+        //     this.instance.toneMappingExposure  = Number( value );
+        // } );
 
 
 
     }
 
-   
+
     public update(): void {
 
 

@@ -5,6 +5,7 @@ import Camera from "./utils/Camera";
 import Sizes from "./utils/Sizes";
 import Time from "./utils/Time";
 import World from "./classes/World";
+import Helpers from "./utils/Helpers";
 
 export default class Experience {
 
@@ -16,6 +17,7 @@ export default class Experience {
     public scene: THREE.Scene;
     public camera: Camera;
     public renderer: Renderer;
+    private helpers: Helpers
 
     public world: World | null = null; // use the genera Page class type
 
@@ -30,6 +32,7 @@ export default class Experience {
         this.time = new Time();
         this.camera = new Camera(this);
         this.renderer = new Renderer(this);
+        this.helpers = new Helpers();
 
 
 
@@ -40,7 +43,6 @@ export default class Experience {
     }
 
     public resize(): void {
-        // Update camera
         this.camera.resize();
         this.renderer.resize();
         if (this.world) this.world.resize();
