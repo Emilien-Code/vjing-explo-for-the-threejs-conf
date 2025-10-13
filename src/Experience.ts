@@ -17,7 +17,7 @@ export default class Experience {
     public scene: THREE.Scene;
     public camera: Camera;
     public renderer: Renderer;
-    private helpers: Helpers
+    public helpers: Helpers
 
     public world: World | null = null; // use the genera Page class type
 

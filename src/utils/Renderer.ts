@@ -24,7 +24,7 @@ export default class Renderer {
         threshold: 0.07,
         strength: 2,
         radius: 0.0,
-        exposure: 0.25
+        exposure: 1
     }
 
     constructor(experience: Experience) {

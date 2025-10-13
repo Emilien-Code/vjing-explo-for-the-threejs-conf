@@ -23,21 +23,19 @@ export default class Camera {
         this.canvas = experience.canvas
 
 
-        this.instance = new THREE.PerspectiveCamera(35, this.sizes.width / this.sizes.height, 0.1, 200000)
+        // this.instance = new THREE.PerspectiveCamera(35, this.sizes.width / this.sizes.height, 0.1, 200000)
         this.setInstance()
 
 
         this.controls = new OrbitControls(this.instance, this.canvas)
-        // this.setControls()
+        this.setControls()
     }
 
 
 
     public setInstance() {
-        /* 1000 pour la scene contact */
         this.instance = new THREE.PerspectiveCamera(35, this.sizes.width / this.sizes.height, 0.1, 20)
         this.instance.position.set(0, 0, 8.5)
-        // this.instance.rotation.y = 0.4
         this.scene.add(this.instance)
     }
 
@@ -47,13 +45,8 @@ export default class Camera {
     }
 
     public update() {
-        // this.controls.update()
+        this.controls.update()
 
-        // this.instance.position.z = lerp(
-        //     this.instance.position.z,
-        //     this.targetPosition,
-        //     0.1
-        // )
     }
     // setTargetPosition(p){
     //     this.targetPosition = p  
