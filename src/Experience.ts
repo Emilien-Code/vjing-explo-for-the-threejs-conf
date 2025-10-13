@@ -6,7 +6,7 @@ import Sizes from "./utils/Sizes";
 import Time from "./utils/Time";
 import World from "./classes/World";
 import Helpers from "./utils/Helpers";
-
+import Ex1 from "./worlds/ex1";
 export default class Experience {
 
     public canvas: HTMLCanvasElement;
@@ -34,12 +34,19 @@ export default class Experience {
         this.renderer = new Renderer(this);
         this.helpers = new Helpers();
 
-
-
+        this.createWorld(Ex1)
 
         this.sizes.on("resize", () => this.resize());
         this.time.on("tick", () => this.update());
         this.time.tick()
+    }
+
+    public createWorld(Exp: World) {
+        if (!Exp) return
+        this.world?.clean()
+        this.world = new Exp(this)
+        this.isReady && (this.world.show())
+
     }
 
     public resize(): void {

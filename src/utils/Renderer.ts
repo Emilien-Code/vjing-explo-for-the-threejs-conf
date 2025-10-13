@@ -47,7 +47,7 @@ export default class Renderer {
         this.instance.toneMappingExposure = this.params.exposure;
         this.instance.shadowMap.enabled = true;
         this.instance.shadowMap.type = THREE.PCFSoftShadowMap;
-        this.instance.setClearColor(0x000000, 0);
+        this.instance.setClearColor(0x000000, 1);
         this.instance.setSize(this.sizes.width, this.sizes.height);
         this.instance.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         this.instance.physicallyCorrectLights = true
@@ -107,8 +107,8 @@ export default class Renderer {
         // (this.experience.renderMesh.material as THREE.ShaderMaterial).uniforms.uDisplacement.value = this.cursorTexture.texture
 
         // this.instance.setRenderTarget(this.sceneTexture)
-        // this.instance.clear()
-        // this.instance.render(this.experience.scene, this.camera.instance);
+        this.instance.clear()
+        this.instance.render(this.experience.scene, this.camera.instance);
         // (this.experience.renderMesh.material as THREE.ShaderMaterial).uniforms.uScene.value = this.sceneTexture.texture
 
         // this.instance.setRenderTarget(null)
@@ -116,7 +116,8 @@ export default class Renderer {
         // this.instance.render(this.experience.renderScene,  this.orthographicCamera);
         // this.bloomComposer.render()
 
-        this.composer.render(this.scene, this.camera.instance)
+        // this.composer.render(this.scene, this.camera.instance)
+        // this.instance.render()
 
 
     }
