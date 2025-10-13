@@ -91,7 +91,7 @@ export default class Ex1 extends World {
                 
                 vParticleIndex = particleIndex;
                 
-                gl_PointSize = 1. + cos(uTime/blinkSpeed + timeOffset) * scaleFactor;
+                gl_PointSize = 1. + cos(uTime/blinkSpeed + timeOffset) * scaleFactor; // cleaner to use attribute but possibility to multiply by xyz coordinates instead of using linkSpeed + timeOffset attributes
 
             }
             `,/**INIGO Tweet if, pikuma matrix explication playlists 3D graphics*/
