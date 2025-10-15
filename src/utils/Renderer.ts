@@ -5,6 +5,9 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { SobelOperatorShader } from 'three/addons/shaders/SobelOperatorShader.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+
 
 export default class Renderer {
     public experience: Experience;
@@ -19,6 +22,8 @@ export default class Renderer {
     public strength = 0
     private renderScene: RenderPass
     private bloomPass: UnrealBloomPass
+    private effectSobel: ShaderPass
+
 
     private params = {
         threshold: 0.07,
@@ -47,14 +52,14 @@ export default class Renderer {
         this.instance.toneMappingExposure = this.params.exposure;
         this.instance.shadowMap.enabled = true;
         this.instance.shadowMap.type = THREE.PCFSoftShadowMap;
-        this.instance.setClearColor(0x000000, 1);
+        this.instance.setClearColor(0xffffff, 1);
         this.instance.setSize(this.sizes.width, this.sizes.height);
         this.instance.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         this.instance.physicallyCorrectLights = true
 
 
         // const renderScene = new RenderPass( this.experience.renderScene, this.orthographicCamera );
-        // this.renderScene = new RenderPass( this.experience.scene, this.experience.camera.instance )
+        this.renderScene = new RenderPass( this.experience.scene, this.experience.camera.instance )
 
         // this.bloomPass = new UnrealBloomPass( new THREE.Vector2( window.innerWidth, window.innerHeight ), 1.5, 0.4, 0.85 );
         // this.bloomPass.threshold = this.params.threshold;
@@ -62,10 +67,15 @@ export default class Renderer {
         // this.bloomPass.radius = this.params.radius;
 
         this.composer = new EffectComposer(this.instance);
+        this.composer.addPass(this.renderScene)
         // this.composer.addPass( this.renderScene );
         // this.composer.addPass( this.bloomPass );
 
 
+        // this.effectSobel = new ShaderPass(SobelOperatorShader);
+        // this.effectSobel.uniforms['resolution'].value.x = window.innerWidth * window.devicePixelRatio;
+        // this.effectSobel.uniforms['resolution'].value.y = window.innerHeight * window.devicePixelRatio;
+        // this.composer.addPass(this.effectSobel);
 
 
 
@@ -100,15 +110,23 @@ export default class Renderer {
     public update(): void {
 
 
+        if (this.composer) {
+            this.composer.render();
 
+
+            return
+        }
+
+        this.instance.clear()
+        this.instance.render(this.experience.scene, this.camera.instance);
 
         // this.instance.setRenderTarget(this.cursorTexture)
         // this.instance.render(this.experience.cursorScene, this.orthographicCamera);
         // (this.experience.renderMesh.material as THREE.ShaderMaterial).uniforms.uDisplacement.value = this.cursorTexture.texture
 
         // this.instance.setRenderTarget(this.sceneTexture)
-        this.instance.clear()
-        this.instance.render(this.experience.scene, this.camera.instance);
+
+
         // (this.experience.renderMesh.material as THREE.ShaderMaterial).uniforms.uScene.value = this.sceneTexture.texture
 
         // this.instance.setRenderTarget(null)
