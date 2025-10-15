@@ -33,9 +33,9 @@ export default class Experience {
 
         this.sizes = new Sizes();
         this.time = new Time();
+        this.helpers = new Helpers();
         this.camera = new Camera(this);
         this.renderer = new Renderer(this);
-        this.helpers = new Helpers();
 
         this.createWorld(TowerScene)
 
