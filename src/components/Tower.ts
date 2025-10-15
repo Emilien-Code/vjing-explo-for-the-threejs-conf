@@ -3,6 +3,7 @@ import Experience from "../Experience"
 import * as THREE from "three"
 import GUI from "lil-gui";
 import { SimplexNoise } from "../utils/noise"
+import { grassPalette, rockPalette } from "../common/colors";
 const getRandomBetween = (min: number, max: number) => Math.random() * (max - min) + min
 export default class Tower {
 
@@ -22,10 +23,10 @@ export default class Tower {
     private scene: THREE.Scene
 
     private towerParams = {
-        base: 16,
+        base: 8,
         height: 56,
-        noiseFactor: 0.1,
-        amountOfCrumbles: 5,
+        noiseFactor: 0.5,
+        amountOfCrumbles: 100,
         offset: 16,
         towerCount: 1,
         fogDistance: 1024,
@@ -203,7 +204,8 @@ varying vec3 vInstanceColor;
 
                 for (let z = 0; z < this.z; z++) {
 
-                    const brickColor = new THREE.Color().setHSL(0.08 + Math.random() * 0.02 * 0.5, 0.3, 0.35 + Math.random() * 0.01 * 0.5);
+
+                    let brickColor = new THREE.Color(rockPalette[Math.floor(Math.random() * rockPalette.length)])
 
 
 
@@ -215,9 +217,7 @@ varying vec3 vInstanceColor;
 
 
                     ) {
-                        brickColor.r = 0.08 + Math.random() * 0.02 * 0.5
-                        brickColor.g = 0.6
-                        brickColor.b = 0.35 + Math.random() * 0.01 * 0.5
+                        brickColor = new THREE.Color(grassPalette[Math.floor(Math.random() * grassPalette.length)])
                     }
 
 

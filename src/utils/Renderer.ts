@@ -9,6 +9,10 @@ import { SobelOperatorShader } from 'three/addons/shaders/SobelOperatorShader.js
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 
 
+import {
+    rendererPalette
+} from "../common/colors"
+
 export default class Renderer {
     public experience: Experience;
     public sizes: { width: number; height: number };
@@ -52,14 +56,14 @@ export default class Renderer {
         this.instance.toneMappingExposure = this.params.exposure;
         this.instance.shadowMap.enabled = true;
         this.instance.shadowMap.type = THREE.PCFSoftShadowMap;
-        this.instance.setClearColor(0xffffff, 1);
+        this.instance.setClearColor(rendererPalette[0], 1);
         this.instance.setSize(this.sizes.width, this.sizes.height);
         this.instance.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         this.instance.physicallyCorrectLights = true
 
 
         // const renderScene = new RenderPass( this.experience.renderScene, this.orthographicCamera );
-        this.renderScene = new RenderPass( this.experience.scene, this.experience.camera.instance )
+        this.renderScene = new RenderPass(this.experience.scene, this.experience.camera.instance)
 
         // this.bloomPass = new UnrealBloomPass( new THREE.Vector2( window.innerWidth, window.innerHeight ), 1.5, 0.4, 0.85 );
         // this.bloomPass.threshold = this.params.threshold;
