@@ -53,10 +53,10 @@ export default class TwoerScene extends World {
         this.scene.add(this.light2)
 
 
-        this.scene.fog = new THREE.Fog(0xff0000, 32, this.tweakParams.fogDistance)
+        this.scene.fog = new THREE.Fog(0x529467, 32, this.tweakParams.fogDistance)
         this.medusa = new Medusa(this.exp, this.medusaParams)
         this.towers = new Tower(this.exp, {
-            base: 16,
+            base: 8,
             height: 56
         });
         this.createTowers()
@@ -82,7 +82,7 @@ export default class TwoerScene extends World {
             1, 4048, 1
         ).onChange((e) => {
 
-            this.scene.fog = new THREE.Fog(0xff0000, 32, this.tweakParams.fogDistance)
+            this.scene.fog = new THREE.Fog(0x529467, 32, this.tweakParams.fogDistance)
 
         })
 
