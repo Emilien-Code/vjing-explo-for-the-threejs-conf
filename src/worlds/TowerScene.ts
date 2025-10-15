@@ -125,7 +125,7 @@ export default class TwoerScene extends World {
     update() {
 
         this.medusa.update()
-
+        this.towers.update()
     }
 
 }

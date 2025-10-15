@@ -28,10 +28,17 @@ export default class Tower {
         noiseFactor: 0.5,
         amountOfCrumbles: 100,
         offset: 16,
-        towerCount: 1,
+        towerCount: 10,
         fogDistance: 1024,
-        columns: 2
+        columns: 2,
+        appearingProgress: 1,
     }
+
+    private uniforms = {
+        uCameraPosition: { value: new THREE.Vector3() },
+        uProgress: { value: this.towerParams.appearingProgress }
+    }
+
 
     constructor(
         experience: Experience,
@@ -62,28 +69,54 @@ export default class Tower {
         this.y = height
         this.z = base
         this.material = new THREE.MeshStandardMaterial({ color: 0xffffff });
+
         this.material.onBeforeCompile = (shader) => {
+            // STEP 1: Add uniforms
+            Object.keys(this.uniforms).forEach(key => {
+                shader.uniforms[key] = this.uniforms[key];
+            });
+
+            // console.log(shader, this.material)
+            // shader.uniforms.uCameraPosition = { value: new THREE.Vector3() }
+            // shader.uniforms.uProgress = { value: this.towerParams.appearingProgress }
+
             shader.fragmentShader = 'varying vec3 vInstanceColor;\n' + shader.fragmentShader;
             shader.vertexShader = shader.vertexShader.replace(
                 '#include <common>',
                 `
                 #include <common>
                 attribute vec3 instanceColor;
+
                 varying vec3 vInstanceColor;
+
+                uniform float uProgress ;
+
                 `
             );
             shader.vertexShader = shader.vertexShader.replace(
                 '#include <begin_vertex>',
                 `
                 #include <begin_vertex>
+                
+                
+                //  vec4 wp = modelMatrix * vec4(transformed, 1.0);
+                //  float dist = distance(transformed, cameraPosition);
+                
+                // float delay = 1.0 - 1.0 /max(0.01, dist) * 2.; 
+//modelMatrix
+//viewMatrix
+                transformed *= uProgress ;//* dist * .1 ;//exp(-0.2 * dist);;//Conseil de flo : utiliser Matric
+
+                            
+                // transformed.x += 10.;
                 vInstanceColor = instanceColor;
                 `
             );
             shader.fragmentShader = shader.fragmentShader.replace(
-                '#include <dithering_fragment>',
+                '#include <dithering_fragment>',//Target ou ce sera appliqué. targetter ailleurs pour que le fog soit quand même calculé (avant sans doute)
                 `
                 #include <dithering_fragment>
-                gl_FragColor.rgb *= vInstanceColor;
+                gl_FragColor.rgb *= vInstanceColor;// Conflit avec le fog car * la valeur du fog
                 `
             );
         };
@@ -346,8 +379,26 @@ varying vec3 vInstanceColor;
             this.addScene()
         })
 
+        towerFolder.add(
+            this.towerParams,
+            'appearingProgress',
+            0, 1, 0.01
+        ).onChange((e) => {
+
+            // this.uniforms.uCameraPosition.value.copy(this.experience.camera.instance.position);
+            this.uniforms.uProgress.value = e
+
+        })
 
 
+
+
+    }
+
+    update() {
+        if (!this.experience.camera.instance) return
+        // console.log(this.experience.camera.instance.position)
+        this.uniforms.uCameraPosition.value.copy(this.experience.camera.instance.position);
     }
     addScene() {
         this.experience.scene.add(this.mesh)
