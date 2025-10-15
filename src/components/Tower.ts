@@ -205,11 +205,34 @@ varying vec3 vInstanceColor;
 
                     const brickColor = new THREE.Color().setHSL(0.08 + Math.random() * 0.02 * 0.5, 0.3, 0.35 + Math.random() * 0.01 * 0.5);
 
-                    colors[Math.floor(Math.random() * colors.length)]
 
+
+                    //Green color
+                    if (
+                        y >= randomY - 1
+                        || ((x === 0 || x === this.x - 1) && (y > randomY - Math.cos(z - 0.5 * Math.PI / 2) * Math.random() * 20))
+                        || ((z === 0 || z === this.z - 1) && (y > randomY - Math.cos(x - 0.5 * Math.PI / 2) * Math.random() * 20))
+
+
+                    ) {
+                        brickColor.r = 0.08 + Math.random() * 0.02 * 0.5
+                        brickColor.g = 0.6
+                        brickColor.b = 0.35 + Math.random() * 0.01 * 0.5
+                    }
+
+
+
+
+                    //Brown color
                     this.bricksColors[this.blockCount * 3] = brickColor.r
                     this.bricksColors[this.blockCount * 3 + 1] = brickColor.g
                     this.bricksColors[this.blockCount * 3 + 2] = brickColor.b
+
+
+
+
+
+
 
                     const noise = this.noise.noise3D(x * this.towerParams.noiseFactor, y * this.towerParams.noiseFactor, z * this.towerParams.noiseFactor);
 
