@@ -3,8 +3,9 @@ import type GUI from 'lil-gui';
 
 import Experience from "../Experience"
 import { SimplexNoise } from "../utils/noise"
-import { jellyFishPalette, jellyFishBloom } from '../common/colors';
+import { jellyFishPalette, godRaysBloom as jellyFishBloom } from '../common/colors';
 import type Time from '../utils/Time';
+import { positionGeometry } from 'three/tsl';
 const getRandomBetween = (min: number, max: number) => Math.random() * (max - min) + min
 
 
@@ -32,6 +33,9 @@ export default class Medusa {
             x: number
             y: number
             z: number
+        }
+        direction: {
+            x: number, y: number, z: number
         }
         group: THREE.Group
         tentacules: {
@@ -107,6 +111,9 @@ export default class Medusa {
                     y: Math.random() * 0.5,
                     z: Math.random() * 0.5,
                 },
+                direction: {
+                    x: 0, y: 0, z: 0
+                },
                 group: new THREE.Group(),
                 tentacules: []
             }
@@ -117,9 +124,9 @@ export default class Medusa {
             );
 
             this.medusas[i].group.add(this.mesh.clone())
-            this.medusas[i].group.position.x = 0//Math.random() * 128 - (128 * 0.25)
-            this.medusas[i].group.position.y = 0//Math.random() * 128 - (128 * 0.25)
-            this.medusas[i].group.position.z = 0//Math.random() * 128 - (128 * 0.25)
+            this.medusas[i].group.position.x = getRandomBetween(8, 24);
+            this.medusas[i].group.position.y = getRandomBetween(30, 60);
+            this.medusas[i].group.position.z = getRandomBetween(0, 1000);
 
 
             /**
@@ -198,7 +205,27 @@ export default class Medusa {
                 // )
             }
 
+            const rotationX = getRandomBetween(0, Math.PI * 2)
+            const rotationy = getRandomBetween(0, Math.PI * 2)
+            const rotationz = getRandomBetween(0, Math.PI * 2)
 
+            this.medusas[i].group.rotation.x = rotationX;
+            this.medusas[i].group.rotation.y = rotationy;
+            this.medusas[i].group.rotation.z = rotationz;
+
+            const scale = getRandomBetween(0.1, 0.3)
+
+            const dir = new THREE.Vector3(1, 0, 0); // direction de base (l’objet regarde vers l’avant, axe Z)
+            dir.applyEuler(this.medusas[i].group.rotation); // applique la rotation
+            dir.normalize();
+
+            this.medusas[i].direction.x = dir.x
+            this.medusas[i].direction.y = dir.y
+            this.medusas[i].direction.z = dir.z
+
+            this.medusas[i].group.scale.x = scale;
+            this.medusas[i].group.scale.y = scale;
+            this.medusas[i].group.scale.z = scale;
 
             this.medusaGroup.add(this.medusas[i].group)
             // this.medusaGroup.layers.enable(jellyFishBloom.layer)
@@ -226,6 +253,7 @@ export default class Medusa {
             this.dispose()
             this.createMedusas()
         })
+        medusaFolder.close()
     }
 
     addScene() {
@@ -238,18 +266,18 @@ export default class Medusa {
     }
 
     update() {
-        // console.log(this.material)
+
         for (const medusa of this.medusas) {
             if (medusa) {
 
-                for (const tentac of medusa.tentacules) (
+                for (const tentac of medusa.tentacules) {
                     tentac.material.uniforms.uTime.value = this.experience.time.elapsedTime
-                )
-                // return
-                // medusa.group.position.x += Math.cos(this.time.elapsedTime * medusa.velocity) * medusa.amplitudes.x
-                // medusa.group.position.y += Math.sin(this.time.elapsedTime * medusa.velocity) * medusa.amplitudes.y
-                // medusa.group.position.z += Math.cos(this.time.elapsedTime * medusa.velocity) * medusa.amplitudes.z
-                medusa.group.rotation.x += this.time.elapsedTime * 0.00000001
+                }
+
+
+                medusa.group.position.addScaledVector(new THREE.Vector3(medusa.direction.x, medusa.direction.y, medusa.direction.z), medusa.velocity * 10)
+                medusa.group.rotation.x += this.time.elapsedTime * 0.00000001 
+
             }
         }
     }
