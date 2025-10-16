@@ -2,8 +2,6 @@ import EventEmitter from "./EventEmitter"
 import * as THREE from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
-import eventBus from "../../utils/eventBus"
-import sources from "../sources"
 
 interface Loaders {
     textureLoader : THREE.TextureLoader
@@ -79,7 +77,6 @@ export default class Ressources extends EventEmitter{
     sourceLoaded(source : Source, file : THREE.Texture){
         this.items[source.name] = file
         this.loaded++
-        eventBus.dispatch("EMI_assets_Loading", {loaded : this.loaded, toLoad: this.toLoad})
         if(this.loaded === this.toLoad){
             this.trigger('ready')
         }

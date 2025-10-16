@@ -6,10 +6,13 @@ import Sizes from "./utils/Sizes";
 import Time from "./utils/Time";
 import World from "./classes/World";
 import Helpers from "./utils/Helpers";
+import Ressources from "./utils/Ressources";
+import sources from "./common/sources";
 import Ex1 from "./worlds/ex1";
 import Ex2 from "./worlds/ex2";
 import Ex3 from "./worlds/ex3";
 import TowerScene from "./worlds/TowerScene";
+
 export default class Experience {
 
     public canvas: HTMLCanvasElement;
@@ -21,13 +24,13 @@ export default class Experience {
     public camera: Camera;
     public renderer: Renderer;
     public helpers: Helpers
+    public ressources: Ressources
 
     public world: World | null = null; // use the genera Page class type
 
     constructor(canvas: HTMLCanvasElement) {
 
         this.canvas = canvas;
-        this.isReady = true;
 
         this.scene = new THREE.Scene();
 
@@ -36,12 +39,14 @@ export default class Experience {
         this.helpers = new Helpers();
         this.camera = new Camera(this);
         this.renderer = new Renderer(this);
-
+        this.ressources = new Ressources(sources)
+        this.ressources.startLoading()
         this.createWorld(TowerScene)
 
         this.sizes.on("resize", () => this.resize());
         this.time.on("tick", () => this.update());
         this.time.tick()
+        this.ressources.on('ready', () => this.onReady())
     }
 
     public createWorld(Exp: World) {
@@ -50,6 +55,11 @@ export default class Experience {
         this.world = new Exp(this)
         this.isReady && (this.world.show())
 
+    }
+
+    onReady(){
+        this.isReady = true;
+        this.world && this.world.onReady()
     }
 
     public resize(): void {

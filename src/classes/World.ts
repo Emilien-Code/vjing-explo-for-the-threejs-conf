@@ -5,6 +5,7 @@ export default class World extends EventEmitter {
         super()
     }
 
+    onReady(){}
     enter() {
 
     }
