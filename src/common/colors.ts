@@ -15,25 +15,32 @@ export const grassPalette = [
     0x3B564B,
     0x529467,
     0x63AD7B,
-    0x98B48A,
+    0x98B48A
 ]
 
 
 //1st color is for the nageoires
 //2nd color is for the bulb
 export const jellyFishPalette = [
-    0xF9B7FD,
-    0x6F8BE6
+    0xCDAB7B//0xF9B7FD,
+    //0x6F8BE6
 ]
+export const jellyFishBloom = {
+    layer: 3,
+}
+export const godRaysBloom = {
+    layer: 6,
+}
 
 
 
-
-
-const background = 0x334E69
+const background = 0xFFEEDD
 export const fogPalette = [
     background
 ]
+export const fogSettings = {
+    density: 0.0025
+}
 
 export const rendererPalette = [
     background
