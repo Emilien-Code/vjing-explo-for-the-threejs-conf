@@ -5,6 +5,9 @@ import GUI from "lil-gui";
 import { SimplexNoise } from "../utils/noise"
 import { grassPalette, rockPalette } from "../common/colors";
 const getRandomBetween = (min: number, max: number) => Math.random() * (max - min) + min
+const lerp = (t, i, e) => t * (1 - e) + i * e
+
+
 export default class Tower {
 
     private experience: Experience;
@@ -36,7 +39,8 @@ export default class Tower {
 
     private uniforms = {
         uCameraPosition: { value: new THREE.Vector3() },
-        uProgress: { value: this.towerParams.appearingProgress }
+        uProgress: { value: this.towerParams.appearingProgress },
+        uRadius: { value: 0 }
     }
 
 
@@ -90,6 +94,7 @@ export default class Tower {
                 varying vec3 vInstanceColor;
 
                 uniform float uProgress ;
+                uniform float uRadius ;
 
                 `
             );
@@ -104,7 +109,7 @@ export default class Tower {
                 float dist = distance(wp.xyz, cameraPosition.xyz);
                 dist = abs( dist);
                 
-                float radius = 100.;
+                float radius = uRadius;
                 float areaFactor = .25;
                 float areaRest = 1. - areaFactor;
                 float diff = radius * areaRest;
@@ -116,6 +121,9 @@ export default class Tower {
                         scale =  1. - distT /radiusT;
                     } else {
                         scale = 1.;
+                    }
+                    if(scale >0.99 && scale<1.){
+                    scale = 1.;
                     }
                 } else {
                     scale = 0.;
@@ -432,6 +440,11 @@ varying vec3 vInstanceColor;
     update() {
         if (!this.experience.camera.instance) return
         // console.log(this.experience.camera.instance.position)
+        this.uniforms.uRadius.value = lerp(
+            this.uniforms.uRadius.value,
+            100,
+            0.1
+        )
         this.uniforms.uCameraPosition.value.copy(this.experience.camera.instance.position);
     }
     addScene() {

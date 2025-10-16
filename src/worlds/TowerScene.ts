@@ -15,6 +15,9 @@ const colors = {
     grey: "",
     gold: ""
 }
+const lerp = (t, i, e) => t * (1 - e) + i * e
+
+
 export default class TwoerScene extends World {
 
     private exp: Experience;
@@ -29,13 +32,13 @@ export default class TwoerScene extends World {
     private cloudTop: Clouds
     private tweakParams = {
         fogDensity: 1,
-        lightX: 50,
-        lightY: 50,
+        lightX: -50,
+        lightY: 75,
         lightZ: 50,
     }
     private medusaParams = {
         noiseFactor: 0.1,
-        amountOfMedusa: 5,
+        amountOfMedusa: 100,
     }
 
     private sunmaterial: THREE.MeshBasicMaterial
@@ -46,12 +49,13 @@ export default class TwoerScene extends World {
     constructor(exp: Experience) {
         super();
         this.exp = exp;
+        window.exp = exp
         this.scene = exp.scene
         this.gui = this.exp.helpers.GUI
-        this.alight = new THREE.AmbientLight(0xffffff, 1)
+        this.alight = new THREE.AmbientLight(0xffe6cc, 1)
         this.scene.add(this.alight)
 
-        this.light = new THREE.DirectionalLight(0xffffff, 1)
+        this.light = new THREE.DirectionalLight(0xffe6cc, 1)
         this.light.castShadow = true
         this.light.position.x = this.tweakParams.lightX
         this.light.position.y = this.tweakParams.lightY
@@ -75,22 +79,35 @@ export default class TwoerScene extends World {
             base: 8,
             height: 56
         });
-        this.clouds = new Clouds(this.exp, { x: 0, y: 0, z: 0, clouds: 3380, yAmplitude: 20, cloudOpacity: 0.01 })
+        //3000 et 2000 peuvznt suffir
+        this.clouds = new Clouds(this.exp, { x: 0, y: 10, z: 0, clouds: 33800, yAmplitude: 20, cloudOpacity: 0.01 })
         this.cloudTop = new Clouds(this.exp, { x: 0, y: 0, z: 0, clouds: 3900, yAmplitude: 100, cloudOpacity: 0.02 })
-        this.godRays = new GodRays(exp)
+        this.godRays = new GodRays(exp, {
+            x: 0,
+            y: 35,
+            z: 11,
+            count: 100
+        })
         this.createTowers()
-        // this.createMedusa()
+        this.createMedusa()
         this.createTweak()
+
+
+        //POSITION LA CAMERA
+        const offset = 16 // (base * 2 + offset)/2
+        this.exp.camera.instance.rotation.y = Math.PI
+        this.exp.camera.instance.position.x = 16
+        this.exp.camera.instance.position.y = 20// ou 44 et 35 aussi c'est cool 
 
     }
 
     createMedusa() {
         this.medusa.createMedusas()
-        
+
     }
 
     onReady() {
-        // this.clouds.createClouds()
+        this.clouds.createClouds()
         // this.cloudTop.createClouds()
         this.godRays.createRays()
     }
@@ -131,14 +148,24 @@ export default class TwoerScene extends World {
         this.gui.add(
             this.tweakParams,
             'fogDensity',
-            0, 1, .001
+            0, 0.1, .001
         ).onChange((e) => {
             this.scene.fog = new THREE.FogExp2(fogPalette[0], this.tweakParams.fogDensity)
         })
-
+        folder.close()
     }
 
     update() {
+
+        //Entry Animation : 
+
+        this.exp.camera.instance.position.y = lerp(
+            this.exp.camera.instance.position.y,
+            40,
+            0.05
+        )
+
+        this.exp.camera.instance.position.z = this.exp.time.elapsedTime * 0.0051
 
         this.medusa.update()
         this.towers.update()

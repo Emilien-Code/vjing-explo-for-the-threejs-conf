@@ -27,8 +27,8 @@ export default class Camera {
         this.setInstance()
 
 
-        this.controls = new OrbitControls(this.instance, this.canvas)
-        this.setControls()
+        // this.controls = new OrbitControls(this.instance, this.canvas)
+        // this.setControls()
     }
 
 
@@ -45,8 +45,7 @@ export default class Camera {
     }
 
     public update() {
-        this.controls.update()
-
+        // this.controls.update()
     }
     // setTargetPosition(p){
     //     this.targetPosition = p  
