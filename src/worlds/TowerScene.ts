@@ -5,7 +5,7 @@ import Experience from "../Experience"
 import World from "../classes/World";
 import Tower from "../components/Tower"
 import Medusa from "../components/Medusa";
-
+import Clouds from "../components/Clouds";
 import {
     fogPalette,
     fogSettings
@@ -24,6 +24,8 @@ export default class TwoerScene extends World {
     private light2: THREE.DirectionalLight
     private gui: GUI
     private medusa: Medusa
+    private clouds: Clouds
+    private cloudTop: Clouds
     private tweakParams = {
         fogDensity: 1,
         lightX: 50,
@@ -71,9 +73,12 @@ export default class TwoerScene extends World {
             base: 8,
             height: 56
         });
+        this.clouds = new Clouds(this.exp, { x: 0, y: 0, z: 0, clouds: 3380, yAmplitude: 20, cloudOpacity: 0.01 })
+        this.cloudTop = new Clouds(this.exp, { x: 0, y: 0, z: 0, clouds: 3900, yAmplitude: 100, cloudOpacity: 0.02 })
         this.createTowers()
-        this.createMedusa()
+        //  this.createMedusa()
         this.createTweak()
+
     }
 
     createMedusa() {
@@ -81,6 +86,10 @@ export default class TwoerScene extends World {
 
     }
 
+    onReady() {
+        this.clouds.createClouds()
+        this.cloudTop.createClouds()
+    }
 
     createTowers() {
         this.towers.addScene()
