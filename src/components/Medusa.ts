@@ -5,6 +5,7 @@ import Experience from "../Experience"
 import { SimplexNoise } from "../utils/noise"
 import { jellyFishPalette, jellyFishBloom } from '../common/colors';
 import type Time from '../utils/Time';
+const getRandomBetween = (min: number, max: number) => Math.random() * (max - min) + min
 
 
 export type MedusaParamsType = {
@@ -124,7 +125,7 @@ export default class Medusa {
             /**
              * Create tentacules
              */
-            for (let j = 0; j < Math.floor(Math.random() * 7) + 5; j++) {
+            for (let j = 0; j < Math.floor(Math.random() * 200) + 30; j++) {
                 this.medusas[i].tentacules[j] = {
                     material: new THREE.ShaderMaterial({
                         wireframe: false,
@@ -142,9 +143,7 @@ export default class Medusa {
                             uniform vec2 uAmplitudes;
                             
 
-
                             void main() {
-
                                 vec3 newPos = position;
 
 
@@ -158,8 +157,8 @@ export default class Medusa {
                                 newPos.z = y * sin(position.x) + z * cos(position.x);
                                 
                                 //Animation
-                                newPos.y += sin(uv.x * 5.+ uTime * 0.001 + uOffset) * uAmplitudes.x ;
-                                newPos.z += sin(uv.x * 5.+ uTime * 0.001 + uOffset) * uAmplitudes.y ;
+                                newPos.y += sin(uv.x * 5.+ uTime * 0.001 + uOffset) * uAmplitudes.x * (5.-uv.x * 5.) ;
+                                newPos.z += sin(uv.x * 5.+ uTime * 0.001 + uOffset) * uAmplitudes.y * (5.-uv.x * 5.) ;
 
                                 
                                 vec4 modelPosition = modelMatrix * vec4(newPos, 1.0);
@@ -172,7 +171,6 @@ export default class Medusa {
                         
                         `,
                         fragmentShader: `
-
                             uniform vec3 uColor;
                             void main() {
                                 gl_FragColor = vec4(uColor,1.0);
@@ -181,11 +179,23 @@ export default class Medusa {
                     })
                 }
                 let tentacule = new THREE.Mesh(this.tentaculePlane, this.medusas[i].tentacules[j].material)
-                tentacule.position.x -= this.tentaculeDefaultLength / 2
+                const tentaScale = getRandomBetween(0.3, 1.2)
+                tentacule.position.x -= tentaScale * this.tentaculeDefaultLength / 2
                 tentacule.position.y = (Math.random() - 0.5)
                 tentacule.position.z = (Math.random() - 0.5)
+                tentacule.scale.set(
+                    tentaScale,
+                    tentaScale,
+                    tentaScale,
+                )
                 tentacule.layers.enable(jellyFishBloom.layer)
                 this.medusas[i].group.add(tentacule)
+                // this.medusas[i].group.scale.set(
+
+                //     Math.random(),
+                //     Math.random(),
+                //     Math.random(),
+                // )
             }
 
 
@@ -235,10 +245,11 @@ export default class Medusa {
                 for (const tentac of medusa.tentacules) (
                     tentac.material.uniforms.uTime.value = this.experience.time.elapsedTime
                 )
-                return
-                medusa.group.position.x += Math.cos(this.time.elapsedTime * medusa.velocity) * medusa.amplitudes.x
-                medusa.group.position.y += Math.sin(this.time.elapsedTime * medusa.velocity) * medusa.amplitudes.y
-                medusa.group.position.z += Math.cos(this.time.elapsedTime * medusa.velocity) * medusa.amplitudes.z
+                // return
+                // medusa.group.position.x += Math.cos(this.time.elapsedTime * medusa.velocity) * medusa.amplitudes.x
+                // medusa.group.position.y += Math.sin(this.time.elapsedTime * medusa.velocity) * medusa.amplitudes.y
+                // medusa.group.position.z += Math.cos(this.time.elapsedTime * medusa.velocity) * medusa.amplitudes.z
+                medusa.group.rotation.x += this.time.elapsedTime * 0.00000001
             }
         }
     }
