@@ -168,6 +168,7 @@ varying vec3 vInstanceColor;
         this.bricksColors = new Float32Array(this.x * this.y * this.z * 3 * this.towerParams.towerCount * this.towerParams.columns)
         this.geometry = new THREE.BoxGeometry(1, 1, 1);
 
+
         this.mesh = new THREE.InstancedMesh(this.geometry, this.material, this.x * this.y * this.z * this.towerParams.towerCount * this.towerParams.columns);
         this.mesh.receiveShadow = true
         this.mesh.castShadow = true
@@ -202,7 +203,7 @@ varying vec3 vInstanceColor;
     }
 
     buildFloor() {
-        const offset = this.towerParams.offset * Math.random()
+        const offset = this.towerParams.offset
         for (let j = 0; j < this.towerParams.columns; j++) {
             for (let i = 0; i < this.towerParams.towerCount; i++) {
                 this.noise = new SimplexNoise()
@@ -252,6 +253,8 @@ varying vec3 vInstanceColor;
             }
         }
 
+
+        const offset = getRandomBetween(-2, 2)
         for (let x = 0; x < this.x; x++) {
 
             for (let y = 0; y < randomY; y++) {
@@ -259,9 +262,14 @@ varying vec3 vInstanceColor;
                 for (let z = 0; z < this.z; z++) {
 
 
-                    let brickColor = new THREE.Color(rockPalette[Math.floor(Math.random() * rockPalette.length)])
+                    let brickColor = new THREE.Color().setHSL(
+                        (22 + Math.random() * 5) / 360,
+                        (48 + Math.random() * 5) / 100,
+                        (27 + Math.random() * 5) / 100,
+                    )
+                    //new THREE.Color(rockPalette[Math.floor(Math.random() * rockPalette.length)])
 
-
+                    // console.log(brickColor.r)
 
                     //Green color
                     if (
@@ -271,7 +279,11 @@ varying vec3 vInstanceColor;
 
 
                     ) {
-                        brickColor = new THREE.Color(grassPalette[Math.floor(Math.random() * grassPalette.length)])
+                        brickColor = new THREE.Color().setHSL(
+                            (84 + Math.random() * 5) / 360,
+                            (30 + Math.random() * 5) / 100,
+                            (25 + Math.random() * 5) / 100,
+                        )
                     }
 
 
@@ -310,7 +322,7 @@ varying vec3 vInstanceColor;
 
 
                     if (shouldBeRendered) {
-                        this.dummy.position.set(x + posX, y, z + posZ);
+                        this.dummy.position.set(x + posX + offset, y, z + posZ + offset);
                         this.dummy.scale.set(1, 1, 1)
                         this.dummy.updateMatrix();
 
@@ -412,6 +424,7 @@ varying vec3 vInstanceColor;
         })
 
 
+        towerFolder.close()
 
 
     }
