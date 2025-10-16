@@ -3,7 +3,7 @@ import type GUI from 'lil-gui';
 
 import Experience from "../Experience"
 import { SimplexNoise } from "../utils/noise"
-import { jellyFishPalette } from '../common/colors';
+import { jellyFishPalette, jellyFishBloom } from '../common/colors';
 import type Time from '../utils/Time';
 
 
@@ -54,12 +54,12 @@ export default class Medusa {
 
         this.gui = this.experience.helpers.GUI
 
-        this.material =  new THREE.ShaderMaterial({
-                        wireframe: false,
-                        uniforms: {
-                            uColor: { value: new THREE.Color(jellyFishPalette[0]) }
-                        },
-                        vertexShader: `
+        this.material = new THREE.ShaderMaterial({
+            wireframe: false,
+            uniforms: {
+                uColor: { value: new THREE.Color(jellyFishPalette[0]) }
+            },
+            vertexShader: `
 
 
                             void main() {
@@ -73,18 +73,18 @@ export default class Medusa {
                             }
                         
                         `,
-                        fragmentShader: `
+            fragmentShader: `
 
                             uniform vec3 uColor;
                             void main() {
                                 gl_FragColor = vec4(uColor,1.0);
                             }
                         `
-                    })
+        })
         this.geometry = new THREE.SphereGeometry(1, 32, 16)
         this.mesh = new THREE.Mesh(this.geometry, this.material)
         this.medusaGroup = new THREE.Group()
-
+        this.mesh.layers.enable(jellyFishBloom.layer)
 
         this.createTweaks()
         this.addScene()
@@ -184,12 +184,14 @@ export default class Medusa {
                 tentacule.position.x -= this.tentaculeDefaultLength / 2
                 tentacule.position.y = (Math.random() - 0.5)
                 tentacule.position.z = (Math.random() - 0.5)
+                tentacule.layers.enable(jellyFishBloom.layer)
                 this.medusas[i].group.add(tentacule)
             }
 
 
 
             this.medusaGroup.add(this.medusas[i].group)
+            // this.medusaGroup.layers.enable(jellyFishBloom.layer)
             this.addScene()
         }
     }
