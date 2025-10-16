@@ -2,6 +2,8 @@ import * as THREE from "three"
 import Experience from "../Experience"
 import GUI from "lil-gui";
 
+import { jellyFishBloom } from "../common/colors";
+
 const getRandomBetween = (min: number, max: number) => Math.random() * (max - min) + min
 
 export default class GodRays {
@@ -56,6 +58,7 @@ export default class GodRays {
 
         this.mesh = new THREE.InstancedMesh(this.geometry, this.material, this.raysParams.count * this.raysParams.faces);
 
+        // this.mesh.layers.enable(jellyFishBloom.layer)
         let plane = 0
 
         for (let ray = 0; ray < this.raysParams.count; ray++) {
@@ -81,11 +84,11 @@ export default class GodRays {
                 plane++
 
             }
-            console.log(this.dummy.position)
+            // console.log(this.dummy.position)
         }
 
 
-        console.log(plane, this.raysParams.count * this.raysParams.faces)
+        // console.log(plane, this.raysParams.count * this.raysParams.faces)
         this.addScene()
     }
 

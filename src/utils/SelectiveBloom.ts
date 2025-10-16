@@ -166,7 +166,15 @@ export default class SelectiveBloom {
         if (obj.isMesh && this.bloomLayer.test(obj.layers) === false) {
 
             this.materials[obj.uuid] = obj.material;
-            obj.material = this.darkMaterial;
+            //For the towers
+
+            if (obj.material.transparent) {
+                obj.visible = false;
+            } else {
+                obj.material = this.darkMaterial;
+            }
+
+            //For the opacities
 
         }
 
@@ -180,7 +188,14 @@ export default class SelectiveBloom {
 
         if (this.materials[obj.uuid]) {
 
-            obj.material = this.materials[obj.uuid];
+
+            if (obj.material.transparent) {
+                obj.visible = true;
+            } else {
+                obj.material = this.materials[obj.uuid];
+            }
+
+
             delete this.materials[obj.uuid];
 
         }
