@@ -6,7 +6,10 @@ import World from "../classes/World";
 import Tower from "../components/Tower"
 import Medusa from "../components/Medusa";
 
-import {fogPalette} from "../common/colors"
+import {
+    fogPalette,
+    fogSettings
+} from "../common/colors"
 const colors = {
     grey: "",
     gold: ""
@@ -62,7 +65,7 @@ export default class TwoerScene extends World {
 
 
         // this.scene.fog = new THREE.Fog(0x529467, 0, this.tweakParams.fogDistance)
-        this.scene.fog = new THREE.FogExp2(0xcccccc, 0.0025);
+        this.scene.fog = new THREE.FogExp2(fogPalette[0], fogSettings.density);
         this.medusa = new Medusa(this.exp, this.medusaParams)
         this.towers = new Tower(this.exp, {
             base: 8,
@@ -90,7 +93,7 @@ export default class TwoerScene extends World {
         folder.add(
             this.tweakParams,
             'lightX',
-            1, 1000, 1
+            -100, 100, 1
         ).onChange((e) => {
             this.light.position.x = e
             this.sunmesh.position.x = e
@@ -98,7 +101,7 @@ export default class TwoerScene extends World {
         folder.add(
             this.tweakParams,
             'lightY',
-            1, 1000, 1
+            -100, 100, 1
         ).onChange((e) => {
             this.light.position.y = e
             this.sunmesh.position.y = e
@@ -106,7 +109,7 @@ export default class TwoerScene extends World {
         folder.add(
             this.tweakParams,
             'lightZ',
-            1, 1000, 1
+            -100, 100, 1
         ).onChange((e) => {
             this.light.position.z = e
             this.sunmesh.position.z = e
