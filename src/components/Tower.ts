@@ -98,14 +98,35 @@ export default class Tower {
                 `
                 #include <begin_vertex>
                 
+
+                vec4 wp = instanceMatrix * vec4(transformed, 1.0);
+
+                float dist = distance(wp.xyz, cameraPosition.xyz);
+                dist = abs( dist);
                 
-                //  vec4 wp = modelMatrix * vec4(transformed, 1.0);
-                //  float dist = distance(transformed, cameraPosition);
+                float radius = 100.;
+                float areaFactor = .25;
+                float areaRest = 1. - areaFactor;
+                float diff = radius * areaRest;
+                float scale = 0.;
+                if(dist < radius ){
+                    if ( dist > radius * areaRest ) {
+                        float distT = dist - diff;
+                        float radiusT = radius - diff;
+                        scale =  1. - distT /radiusT;
+                    } else {
+                        scale = 1.;
+                    }
+                } else {
+                    scale = 0.;
+                    
+                }
+                
                 
                 // float delay = 1.0 - 1.0 /max(0.01, dist) * 2.; 
 //modelMatrix
 //viewMatrix
-                transformed *= uProgress ;//* dist * .1 ;//exp(-0.2 * dist);;//Conseil de flo : utiliser Matric
+                transformed *= scale ;//* dist * .1 ;//exp(-0.2 * dist);;//Conseil de flo : utiliser Matric
 
                             
                 // transformed.x += 10.;
@@ -113,9 +134,9 @@ export default class Tower {
                 `
             );
             shader.fragmentShader = shader.fragmentShader.replace(
-                '#include <dithering_fragment>',//Target ou ce sera appliqué. targetter ailleurs pour que le fog soit quand même calculé (avant sans doute)
+                '#include <fog_fragment>',//Target ou ce sera appliqué. targetter ailleurs pour que le fog soit quand même calculé (avant sans doute)
                 `
-                #include <dithering_fragment>
+                #include <fog_fragment>
                 gl_FragColor.rgb *= vInstanceColor;// Conflit avec le fog car * la valeur du fog
                 `
             );
