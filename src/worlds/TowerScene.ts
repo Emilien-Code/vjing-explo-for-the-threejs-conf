@@ -10,6 +10,7 @@ import {
     fogPalette,
     fogSettings
 } from "../common/colors"
+import GodRays from "../components/GodRays";
 const colors = {
     grey: "",
     gold: ""
@@ -40,6 +41,7 @@ export default class TwoerScene extends World {
     private sunmaterial: THREE.MeshBasicMaterial
     private sungeometry: THREE.SphereGeometry
     private sunmesh: THREE.Mesh
+    private godRays: GodRays
 
     constructor(exp: Experience) {
         super();
@@ -75,20 +77,22 @@ export default class TwoerScene extends World {
         });
         this.clouds = new Clouds(this.exp, { x: 0, y: 0, z: 0, clouds: 3380, yAmplitude: 20, cloudOpacity: 0.01 })
         this.cloudTop = new Clouds(this.exp, { x: 0, y: 0, z: 0, clouds: 3900, yAmplitude: 100, cloudOpacity: 0.02 })
+        this.godRays = new GodRays(exp)
         this.createTowers()
-        //  this.createMedusa()
+        // this.createMedusa()
         this.createTweak()
 
     }
 
     createMedusa() {
         this.medusa.createMedusas()
-
+        
     }
 
     onReady() {
-        this.clouds.createClouds()
-        this.cloudTop.createClouds()
+        // this.clouds.createClouds()
+        // this.cloudTop.createClouds()
+        this.godRays.createRays()
     }
 
     createTowers() {

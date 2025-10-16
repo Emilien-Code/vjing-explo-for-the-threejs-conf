@@ -10,7 +10,7 @@ const sources = [
     }, {
         name: "noise",
         type: "texture",
-        path: ["/noise.jpg"]
+        path: ["/noise3.png"]
     },
 ]
 
