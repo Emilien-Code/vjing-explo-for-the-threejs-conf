@@ -126,9 +126,9 @@ export default class Clouds {
         for (let i = 0; i < this.cloudParams.clouds; i++) {
 
             this.dummy.position.set(
-                getRandomBetween(0, 50),
+                getRandomBetween(0, 32),
                 getRandomBetween(0, this.cloudParams.yAmplitude),
-                getRandomBetween(0, 100)
+                getRandomBetween(0, 1000)
             );
 
             this.dummy.rotation.set(
@@ -158,7 +158,7 @@ export default class Clouds {
         towerFolder.add(
             this.cloudParams,
             'clouds',
-            0, 10000, 1
+            0, 100000, 1
         ).onChange((e: number) => {
             this.dispose()
             this.createClouds()
@@ -216,6 +216,7 @@ export default class Clouds {
         ).onChange((e: number) => {
             this.mesh && (this.mesh.position.z = e)
         })
+        towerFolder.close()
     }
     update() {
         if (!this.experience.camera.instance) return
