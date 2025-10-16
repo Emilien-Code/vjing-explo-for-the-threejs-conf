@@ -28,11 +28,20 @@ export default class GodRays {
 
 
     constructor(experience: Experience,
+        params: {
+            x: number
+            y: number
+            z: number
+            count: number
+        }
     ) {
         this.experience = experience
         this.gui = this.experience.helpers.GUI
         this.scene = this.experience.scene
-
+        this.raysParams = {
+            ...this.raysParams,
+            ...params
+        }
         this.createTweaks()
     }
 
@@ -51,6 +60,43 @@ export default class GodRays {
 
 
         });
+        this.material.onBeforeCompile = (shader) => {
+
+
+            shader.vertexShader = shader.vertexShader.replace(
+                '#include <begin_vertex>',
+                `
+                #include <begin_vertex>
+                
+
+                vec4 wp = instanceMatrix * vec4(transformed, 1.0);
+
+                float dist = distance(wp.xyz, cameraPosition.xyz);
+                dist = abs( dist);
+                
+                float radius = 100.;
+                float areaFactor = .25;
+                float areaRest = 1. - areaFactor;
+                float diff = radius * areaRest;
+                float scale = 0.;
+                if(dist < radius ){
+                    if ( dist > radius * areaRest ) {
+                        float distT = dist - diff;
+                        float radiusT = radius - diff;
+                        scale =  1. - distT /radiusT;
+                    } else {
+                        scale = 1.;
+                    }
+                } else {
+                    scale = 0.;
+                    
+                }
+
+                transformed *= scale ;
+
+                `
+            );
+        }
 
         this.dummy = new THREE.Object3D();
 
@@ -65,8 +111,8 @@ export default class GodRays {
             for (let face = 0; face < this.raysParams.faces; face++) {
 
                 this.dummy.position.set(
-                    getRandomBetween(0, 10 * ray * 0.005),
-                    getRandomBetween(0, 10 * ray * 0.01) + this.raysParams.y,
+                    getRandomBetween(-5, 10 * ray * 0.005),
+                    getRandomBetween(0, 10 * (this.raysParams.faces - ray) / this.raysParams.faces * 0.5) + this.raysParams.y,
                     ray * (getRandomBetween(0, 10) + getRandomBetween(8, 12)) + getRandomBetween(0, 10) + getRandomBetween(8, 12),
                 );
 
@@ -108,22 +154,19 @@ export default class GodRays {
             })
 
 
-        godRaysFolder.add(this.raysParams, "x", 0, 1000, 1)
+        godRaysFolder.add(this.raysParams, "x", -100, 1000, 1)
             .onChange((e: number) => {
-                this.dispose()
-                this.createRays()
+                this.mesh && (this.mesh.position.x = e)
             })
 
         godRaysFolder.add(this.raysParams, "y", 0, 1000, 1)
             .onChange((e: number) => {
-                this.dispose()
-                this.createRays()
+                this.mesh && (this.mesh.position.y = e)
             })
 
         godRaysFolder.add(this.raysParams, "z", 0, 1000, 1)
             .onChange((e: number) => {
-                this.dispose()
-                this.createRays()
+                this.mesh && (this.mesh.position.z = e)
             })
 
 
@@ -147,6 +190,6 @@ export default class GodRays {
         this.geometry.dispose()
     }
     update() {
-
+        if (!this.experience.camera.instance) return
     }
 }
