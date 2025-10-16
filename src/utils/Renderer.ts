@@ -7,9 +7,10 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { SobelOperatorShader } from 'three/addons/shaders/SobelOperatorShader.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
-
+import SelectiveBloom from "./SelectiveBloom";
 
 import {
+    jellyFishBloom,
     rendererPalette
 } from "../common/colors"
 import { ClearPass } from "three/examples/jsm/Addons.js";
@@ -25,9 +26,11 @@ export default class Renderer {
     private orthographicCamera: THREE.OrthographicCamera;
     private composer: EffectComposer | null = null;
     public strength = 0
-    private renderScene: RenderPass
+    public renderScene: RenderPass
     private bloomPass: UnrealBloomPass
     private effectSobel: ShaderPass
+    private selectiveBloom: SelectiveBloom
+
 
 
     private params = {
@@ -45,6 +48,7 @@ export default class Renderer {
         this.sizes = experience.sizes;
         this.scene = experience.scene;
         this.camera = experience.camera;
+
 
         this.setInstance();
         this.createTweaks()
@@ -65,22 +69,26 @@ export default class Renderer {
         this.instance.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         this.instance.physicallyCorrectLights = true
 
+        this.experience.renderer = this
+
 
         this.renderScene = new RenderPass(this.experience.scene, this.experience.camera.instance/* null, new THREE.Color( 0xff00ff ), 1**/)
+        this.selectiveBloom = new SelectiveBloom(this.experience, jellyFishBloom.layer)
 
-        this.bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
-        this.bloomPass.enabled = this.params.bloom
-        this.bloomPass.threshold = this.params.threshold;
-        this.bloomPass.strength = this.params.strength;
-        this.bloomPass.radius = this.params.radius;
+        // this.bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+        // this.bloomPass.enabled = this.params.bloom
+        // this.bloomPass.threshold = this.params.threshold;
+        // this.bloomPass.strength = this.params.strength;
+        // this.bloomPass.radius = this.params.radius;
 
 
         this.composer = new EffectComposer(this.instance);
         // this.composer.addPass(new ClearPass( new THREE.Color( 0xff00ff)))
         this.composer.addPass(this.renderScene)
-        // this.composer.addPass( this.renderScene );
+        this.composer.addPass(this.selectiveBloom.getMixPass);
+        this.composer.addPass(this.selectiveBloom.getOutputPass);
 
-        this.composer.addPass(this.bloomPass);
+        // this.composer.addPass(outputPass);
         console.log('yoyoyo')
 
         //Rendre dans une texture puis retirer les px noirs
@@ -99,32 +107,32 @@ export default class Renderer {
 
         const folder = this.experience.helpers.GUI.addFolder('renderer');
 
-        folder.add(this.params, 'threshold', 0.0, 10.0).onChange((value) => {
+        folder.add(this.params, 'threshold', 0.0, 10.0).onChange((value: number) => {
 
             this.bloomPass.threshold = Number(value);
 
         });
 
-        folder.add(this.params, 'strength', 0.0, 30.0).onChange((value) => {
+        folder.add(this.params, 'strength', 0.0, 30.0).onChange((value: number) => {
 
             this.bloomPass.strength = Number(value);
 
         });
 
-        folder.add(this.params, 'radius', 0.0, 10.0).step(0.01).onChange((value) => {
+        folder.add(this.params, 'radius', 0.0, 10.0).step(0.01).onChange((value: number) => {
 
             this.bloomPass.radius = Number(value);
 
         });
-        folder.add(this.params, 'exposure', 0.0, 10.0).step(0.01).onChange((value) => {
+        folder.add(this.params, 'exposure', 0.0, 10.0).step(0.01).onChange((value: number) => {
             this.instance.toneMappingExposure = value;
         });
-        folder.add(this.params, 'bloom').step(0.01).onChange((value) => {
+        folder.add(this.params, 'bloom').step(0.01).onChange((value: boolean) => {
             //this.instance.toneMappingExposure = value;
             this.bloomPass.enabled = value
             // this.setInstance()
         });
-        folder.add(this.params, 'sobel').step(0.01).onChange((value) => {
+        folder.add(this.params, 'sobel').step(0.01).onChange((value: boolean) => {
             // this.instance.sobel = value;
             this.effectSobel.enabled = value
             // this.setInstance()
@@ -138,8 +146,9 @@ export default class Renderer {
 
         if (this.composer) {
             this.composer.render();
-
-
+            this.selectiveBloom.update()
+            
+            
             return
         }
 
@@ -169,6 +178,6 @@ export default class Renderer {
     public resize(): void {
         this.instance.setSize(this.experience.sizes.width, this.experience.sizes.height);
         this.instance.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        this.composer.setSize(this.experience.sizes.width, this.experience.sizes.height);
+        this.composer && this.composer.setSize(this.experience.sizes.width, this.experience.sizes.height);
     }
 }
