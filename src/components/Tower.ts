@@ -228,11 +228,14 @@ varying vec3 vInstanceColor;
 
     createCrumbledFloor(splits: number, posX: number, posY: number, posZ: number) {
 
+        const factor = posZ / ((this.towerParams.offset + this.x) * this.towerParams.towerCount) * 0.5
+        const aoc = posZ / ((this.towerParams.offset + this.x)* this.towerParams.towerCount ) * 100
+
         const colors = [
             new THREE.Color(0xAF8F5E),
             // new THREE.Color(0x98B38A),
         ]
-        const crumbleCount = Math.floor(Math.random() * this.towerParams.amountOfCrumbles) + 1
+        const crumbleCount = Math.floor(Math.random() * aoc) //+ 1
 
 
         const crumbles: { x: number, y: number, z: number, rx: number, ry: number, rz: number }[] = []
@@ -308,7 +311,7 @@ varying vec3 vInstanceColor;
 
 
 
-                    const noise = this.noise.noise3D(x * this.towerParams.noiseFactor, y * this.towerParams.noiseFactor, z * this.towerParams.noiseFactor);
+                    const noise = this.noise.noise3D(x * factor, y * factor, z * factor);
 
                     let shouldBeRendered = true
                     for (const crumble of crumbles) {
