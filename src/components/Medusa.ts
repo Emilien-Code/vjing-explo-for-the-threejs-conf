@@ -1,11 +1,12 @@
 import * as THREE from 'three'
+import type GUI from 'lil-gui';
 
 import Experience from "../Experience"
 import { SimplexNoise } from "../utils/noise"
-import type { SimplexNoise } from 'three/examples/jsm/Addons.js';
+import { jellyFishPalette } from '../common/colors';
 import type Time from '../utils/Time';
-import { velocity } from 'three/tsl';
-import type GUI from 'lil-gui';
+
+
 export type MedusaParamsType = {
     noiseFactor: number;
     amountOfMedusa: number;
@@ -31,10 +32,15 @@ export default class Medusa {
             y: number
             z: number
         }
-        mesh: THREE.Mesh
+        group: THREE.Group
+        tentacules: {
+            material: THREE.ShaderMaterial
+        }[]
     }[] = []
     private medusaGroup: THREE.Group
     private medusaParams: MedusaParamsType
+    private tentaculeDefaultLength = 5
+    private tentaculePlane = new THREE.PlaneGeometry(this.tentaculeDefaultLength, 0.2, 20, 2)
 
 
     constructor(experience: Experience, medusaParams: MedusaParamsType) {
@@ -48,7 +54,33 @@ export default class Medusa {
 
         this.gui = this.experience.helpers.GUI
 
-        this.material = new THREE.MeshBasicMaterial({ color: "purple" })
+        this.material =  new THREE.ShaderMaterial({
+                        wireframe: false,
+                        uniforms: {
+                            uColor: { value: new THREE.Color(jellyFishPalette[0]) }
+                        },
+                        vertexShader: `
+
+
+                            void main() {
+
+                                vec4 modelPosition = modelMatrix * vec4(position, 1.0);
+                                vec4 viewPosition = viewMatrix * modelPosition;
+                                vec4 projectedPosition = projectionMatrix * viewPosition;
+
+                                gl_Position = projectedPosition;
+
+                            }
+                        
+                        `,
+                        fragmentShader: `
+
+                            uniform vec3 uColor;
+                            void main() {
+                                gl_FragColor = vec4(uColor,1.0);
+                            }
+                        `
+                    })
         this.geometry = new THREE.SphereGeometry(1, 32, 16)
         this.mesh = new THREE.Mesh(this.geometry, this.material)
         this.medusaGroup = new THREE.Group()
@@ -63,7 +95,10 @@ export default class Medusa {
 
         this.noise = new SimplexNoise()
 
+
+
         for (let i = 0; i < this.medusaParams.amountOfMedusa; i++) {
+
             this.medusas[i] = {
                 velocity: Math.random() * 0.01,
                 amplitudes: {
@@ -71,7 +106,8 @@ export default class Medusa {
                     y: Math.random() * 0.5,
                     z: Math.random() * 0.5,
                 },
-                mesh: this.mesh.clone()
+                group: new THREE.Group(),
+                tentacules: []
             }
             const noise = this.noise.noise3D(
                 Math.random() * 128 * this.medusaParams.noiseFactor,
@@ -79,16 +115,81 @@ export default class Medusa {
                 Math.random() * 128 * this.medusaParams.noiseFactor
             );
 
-
-            this.medusas[i].mesh.position.x = Math.random() * 128 - (128 * 0.25)
-            this.medusas[i].mesh.position.y = Math.random() * 128 - (128 * 0.25)
-            this.medusas[i].mesh.position.z = Math.random() * 128 - (128 * 0.25)
-
-
+            this.medusas[i].group.add(this.mesh.clone())
+            this.medusas[i].group.position.x = 0//Math.random() * 128 - (128 * 0.25)
+            this.medusas[i].group.position.y = 0//Math.random() * 128 - (128 * 0.25)
+            this.medusas[i].group.position.z = 0//Math.random() * 128 - (128 * 0.25)
 
 
+            /**
+             * Create tentacules
+             */
+            for (let j = 0; j < Math.floor(Math.random() * 7) + 5; j++) {
+                this.medusas[i].tentacules[j] = {
+                    material: new THREE.ShaderMaterial({
+                        wireframe: false,
+                        side: THREE.DoubleSide,
+                        uniforms: {
+                            uTime: { value: 0 },
+                            uAmplitudes: { value: new THREE.Vector2((Math.random() - 0.5), (Math.random() - 0.5)) },
+                            uOffset: { value: Math.random() },
+                            uColor: { value: new THREE.Color(jellyFishPalette[0]) }
+                        },
+                        vertexShader: `
 
-            this.medusaGroup.add(this.medusas[i].mesh)
+                            uniform float uTime;
+                            uniform float uOffset;
+                            uniform vec2 uAmplitudes;
+                            
+
+
+                            void main() {
+
+                                vec3 newPos = position;
+
+
+                                float radiusY = 1.0;
+                                float radiusZ = 0.5;
+                                
+                                float y = newPos.y * radiusY;
+                                float z = newPos.z * radiusZ;
+                    
+                                newPos.y = y * cos(position.x) - z * sin(position.x);
+                                newPos.z = y * sin(position.x) + z * cos(position.x);
+                                
+                                //Animation
+                                newPos.y += sin(uv.x * 5.+ uTime * 0.001 + uOffset) * uAmplitudes.x ;
+                                newPos.z += sin(uv.x * 5.+ uTime * 0.001 + uOffset) * uAmplitudes.y ;
+
+                                
+                                vec4 modelPosition = modelMatrix * vec4(newPos, 1.0);
+                                vec4 viewPosition = viewMatrix * modelPosition;
+                                vec4 projectedPosition = projectionMatrix * viewPosition;
+
+                                gl_Position = projectedPosition;
+
+                            }
+                        
+                        `,
+                        fragmentShader: `
+
+                            uniform vec3 uColor;
+                            void main() {
+                                gl_FragColor = vec4(uColor,1.0);
+                            }
+                        `
+                    })
+                }
+                let tentacule = new THREE.Mesh(this.tentaculePlane, this.medusas[i].tentacules[j].material)
+                tentacule.position.x -= this.tentaculeDefaultLength / 2
+                tentacule.position.y = (Math.random() - 0.5)
+                tentacule.position.z = (Math.random() - 0.5)
+                this.medusas[i].group.add(tentacule)
+            }
+
+
+
+            this.medusaGroup.add(this.medusas[i].group)
             this.addScene()
         }
     }
@@ -123,13 +224,19 @@ export default class Medusa {
         this.scene.remove(this.medusaGroup);
         // this.geometry.dispose()
     }
-    
+
     update() {
+        // console.log(this.material)
         for (const medusa of this.medusas) {
             if (medusa) {
-                medusa.mesh.position.x += Math.cos(this.time.elapsedTime * medusa.velocity) * medusa.amplitudes.x
-                medusa.mesh.position.y += Math.sin(this.time.elapsedTime * medusa.velocity) * medusa.amplitudes.y
-                medusa.mesh.position.z += Math.cos(this.time.elapsedTime * medusa.velocity) * medusa.amplitudes.z
+
+                for (const tentac of medusa.tentacules) (
+                    tentac.material.uniforms.uTime.value = this.experience.time.elapsedTime
+                )
+                return
+                medusa.group.position.x += Math.cos(this.time.elapsedTime * medusa.velocity) * medusa.amplitudes.x
+                medusa.group.position.y += Math.sin(this.time.elapsedTime * medusa.velocity) * medusa.amplitudes.y
+                medusa.group.position.z += Math.cos(this.time.elapsedTime * medusa.velocity) * medusa.amplitudes.z
             }
         }
     }
