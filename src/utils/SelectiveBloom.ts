@@ -33,7 +33,11 @@ export default class SelectiveBloom {
     };
 
 
-    constructor(experience: Experience, bloom_scene?: number) {
+    constructor(experience: Experience, bloom_scene?: number, properties ?: {
+        radius?: number
+        strength?: number
+        threshold?: number
+    }) {
         this.experience = experience
         this.scene = this.experience.scene
         this.renderer = this.experience.renderer.instance
@@ -46,7 +50,10 @@ export default class SelectiveBloom {
         this.bloomLayer = new THREE.Layers();
         this.bloomLayer.set(this.bloom_scene);
 
-
+        this.params = {
+            ...this.params,
+            ...properties
+        }
 
         this.bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
         this.bloomPass.threshold = this.params.threshold;
@@ -123,7 +130,7 @@ export default class SelectiveBloom {
     createTweaks() {
 
 
-        const folder = this.experience.helpers.GUI.addFolder('JellyFishBloom');
+        const folder = this.experience.helpers.GUI.addFolder(`${this.bloom_scene}`);
 
         folder.add(this.params, 'threshold', 0.0, 10.0).onChange((value: number) => {
 
@@ -153,7 +160,7 @@ export default class SelectiveBloom {
             // this.instance.toneMappingExposure = value;
         });
 
-
+folder.close()
     }
 
     darkenNonBloomed(obj: any) {

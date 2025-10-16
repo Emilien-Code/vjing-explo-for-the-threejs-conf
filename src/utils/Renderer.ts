@@ -8,11 +8,18 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { SobelOperatorShader } from 'three/addons/shaders/SobelOperatorShader.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import SelectiveBloom from "./SelectiveBloom";
+import { ColorCorrectionShader } from 'three/examples/jsm/shaders/ColorCorrectionShader.js';
+
 
 import {
+    godRaysBloom,
     jellyFishBloom,
     rendererPalette
 } from "../common/colors"
+
+
+
+
 import { ClearPass } from "three/examples/jsm/Addons.js";
 
 export default class Renderer {
@@ -27,19 +34,30 @@ export default class Renderer {
     private composer: EffectComposer | null = null;
     public strength = 0
     public renderScene: RenderPass
+    public renderScene2: RenderPass
     private bloomPass: UnrealBloomPass
     private effectSobel: ShaderPass
     private selectiveBloom: SelectiveBloom
+    private godRaysBloom: SelectiveBloom
 
 
+    private colorCorrectionpowRGB_x = 2.2
+    private colorCorrectionpowRGB_y = 1.51
+    private colorCorrectionpowRGB_z = 1.0
 
+    private colorCorrectionmulRGB_x = 2.1
+    private colorCorrectionmulRGB_y = 1.505
+    private colorCorrectionmulRGB_z = 0.95
     private params = {
         threshold: 0.07,
         strength: 2,
         radius: 0.0,
         exposure: 1.52,
         bloom: false,
-        sobel: false
+        sobel: false,
+        // tDiffuse: 0,
+        // satGreen: 1.5,
+        // satOrange: 1.4,
     }
 
     constructor(experience: Experience) {
@@ -73,7 +91,13 @@ export default class Renderer {
 
 
         this.renderScene = new RenderPass(this.experience.scene, this.experience.camera.instance/* null, new THREE.Color( 0xff00ff ), 1**/)
+        this.renderScene2 = new RenderPass(this.experience.scene, this.experience.camera.instance/* null, new THREE.Color( 0xff00ff ), 1**/)
+        
         this.selectiveBloom = new SelectiveBloom(this.experience, jellyFishBloom.layer)
+        this.godRaysBloom = new SelectiveBloom(this.experience, godRaysBloom.layer, {
+            strength: 0.3,
+            radius: 1.48
+        })
 
         // this.bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
         // this.bloomPass.enabled = this.params.bloom
@@ -83,13 +107,18 @@ export default class Renderer {
 
 
         this.composer = new EffectComposer(this.instance);
+
         // this.composer.addPass(new ClearPass( new THREE.Color( 0xff00ff)))
         this.composer.addPass(this.renderScene)
         this.composer.addPass(this.selectiveBloom.getMixPass);
         this.composer.addPass(this.selectiveBloom.getOutputPass);
 
+         this.composer.addPass(this.renderScene2)
+         this.composer.addPass(this.godRaysBloom.getMixPass);
+         this.composer.addPass(this.godRaysBloom.getOutputPass);
         // this.composer.addPass(outputPass);
         console.log('yoyoyo')
+
 
         //Rendre dans une texture puis retirer les px noirs
         this.effectSobel = new ShaderPass(SobelOperatorShader);
@@ -98,7 +127,10 @@ export default class Renderer {
         this.effectSobel.uniforms['resolution'].value.y = window.innerHeight * window.devicePixelRatio;
         this.composer.addPass(this.effectSobel);
 
-
+         const colorCorrection = new ShaderPass(ColorCorrectionShader);
+         colorCorrection.uniforms['powRGB'].value = new THREE.Vector3(2.2, 1.51, 1.0);
+         colorCorrection.uniforms['mulRGB'].value = new THREE.Vector3(2.1, 1.505, 0.95);
+         this.composer.addPass(colorCorrection);
 
     }
 
@@ -138,6 +170,29 @@ export default class Renderer {
             // this.setInstance()
         });
 
+
+
+        // folder.add(this.params, 'tDiffuse', 0, 10, 0.1)
+        //     .onChange((value: number) => {
+
+        //         this.vibrantShader.uniforms.tDiffuse.value
+        //         this.setInstance()
+        //     });
+        // folder.add(this.params, 'satGreen', 0, 10, 0.1)
+        //     .onChange((value: number) => {
+
+        //         this.vibrantShader.uniforms.satGreen.value
+        //         this.setInstance()
+        //     });
+        // folder.add(this.params, 'satOrange', 0, 10, 0.1)
+        //     .onChange((value: number) => {
+
+        //         this.vibrantShader.uniforms.satOrange.value
+        //         this.setInstance()
+        //     });
+
+        // folder.close()
+
     }
 
 
@@ -147,8 +202,9 @@ export default class Renderer {
         if (this.composer) {
             this.composer.render();
             this.selectiveBloom.update()
-            
-            
+            this.godRaysBloom.update()
+
+
             return
         }
 
