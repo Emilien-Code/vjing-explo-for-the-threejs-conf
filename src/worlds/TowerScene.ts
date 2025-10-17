@@ -24,13 +24,14 @@ export default class TwoerScene extends World {
     private exp: Experience;
     private scene: THREE.Scene
     private towers: Tower
+    private towers2: Tower
     private alight: THREE.AmbientLight
     private light: THREE.DirectionalLight
     private light2: THREE.DirectionalLight
     private gui: GUI
     private medusa: Medusa
     private clouds: Clouds
-    private cloudTop: Clouds
+    // private cloudTop: Clouds
     private tweakParams = {
         fogDensity: 1,
         lightX: -50,
@@ -47,7 +48,9 @@ export default class TwoerScene extends World {
     private sungeometry: THREE.SphereGeometry
     private sunmesh: THREE.Mesh
     private godRays: GodRays
-    private audio : AudioAnalyzer
+    private audio: AudioAnalyzer
+    private offset = 16
+    private towerGroupCount = 0
     constructor(exp: Experience) {
         super();
         this.exp = exp;
@@ -74,7 +77,9 @@ export default class TwoerScene extends World {
         this.scene.add(this.sunmesh)
         this.audio = new AudioAnalyzer()
         this.isPlaying = false
-        window.onclick = () => {
+        window.onclick = () => {    
+            console.log("ici, ")
+            console.log(this.exp.time.elapsedTime)
             this.audio.play()
             this.exp.time.reset()
             this.isPlaying = true;
@@ -86,9 +91,14 @@ export default class TwoerScene extends World {
             base: 8,
             height: 56
         });
-        //3000 et 2000 peuvznt suffir
+
+        this.towers2 = new Tower(this.exp, {
+            base: 8,
+            height: 56
+        });
+
         this.clouds = new Clouds(this.exp, { x: 0, y: 10, z: 0, clouds: 33800, yAmplitude: 20, cloudOpacity: 0.01 })
-        this.cloudTop = new Clouds(this.exp, { x: 0, y: 0, z: 0, clouds: 3900, yAmplitude: 100, cloudOpacity: 0.02 })
+        
         this.godRays = new GodRays(exp, {
             x: 0,
             y: 35,
@@ -101,7 +111,7 @@ export default class TwoerScene extends World {
 
 
         //POSITION LA CAMERA
-        const offset = 16 // (base * 2 + offset)/2
+        this.offset = 16 // (base * 2 + offset)/2
         this.exp.camera.instance.rotation.y = Math.PI
         this.exp.camera.instance.position.x = 16
         this.exp.camera.instance.position.y = 20// ou 44 et 35 aussi c'est cool 
@@ -120,8 +130,11 @@ export default class TwoerScene extends World {
     }
 
     createTowers() {
+        this.towers.createTower(this.towerGroupCount)
         this.towers.addScene()
-
+        this.towerGroupCount++
+        this.towers2.createTower(this.towerGroupCount)
+        this.towers2.addScene()
     }
     createTweak() {
 
@@ -163,7 +176,7 @@ export default class TwoerScene extends World {
     }
 
     update() {
-        if(!this.isPlaying) return
+        if (!this.isPlaying) return
         //Entry Animation : 
 
         this.exp.camera.instance.position.y = lerp(
@@ -171,11 +184,25 @@ export default class TwoerScene extends World {
             40,
             0.05
         )
+        const cameraPos = this.exp.time.elapsedTime * 0.0051
+        this.exp.camera.instance.position.z = cameraPos
+        // console.log(cameraPos)
 
-        this.exp.camera.instance.position.z = this.exp.time.elapsedTime * 0.0051
+        if (cameraPos >= this.towers.getTowerEndPosZ()) {
+            this.towerGroupCount++
+            this.towers.createTower(this.towerGroupCount)
+            this.towers.addScene()
+        }
+        if (cameraPos >= this.towers2.getTowerEndPosZ()) {
+            this.towerGroupCount++
+            this.towers2.createTower(this.towerGroupCount)
+            this.towers2.addScene()
+        }
+
 
         this.medusa.update()
         this.towers.update()
+        this.towers2.update()
     }
 
 }

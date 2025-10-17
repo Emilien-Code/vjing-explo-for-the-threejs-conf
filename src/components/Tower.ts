@@ -24,6 +24,9 @@ export default class Tower {
     private geometry: THREE.BoxGeometry
     private material: THREE.MeshStandardMaterial
     private scene: THREE.Scene
+    private musicDurationInBlock = 400
+
+    private repeatOffset = 0
 
     private towerParams = {
         base: 8,
@@ -31,7 +34,7 @@ export default class Tower {
         noiseFactor: 0.5,
         amountOfCrumbles: 100,
         offset: 16,
-        towerCount: 10,
+        towerCount: 4,
         fogDistance: 1024,
         columns: 2,
         appearingProgress: 1,
@@ -72,6 +75,7 @@ export default class Tower {
         this.x = base
         this.y = height
         this.z = base
+
         this.material = new THREE.MeshStandardMaterial({ color: 0xffffff });
 
         this.material.onBeforeCompile = (shader) => {
@@ -191,14 +195,14 @@ varying vec3 vInstanceColor;
         this.noise = new SimplexNoise()
 
         // this.buildFloor()
-        this.createTower()
+        // this.createTower()
         // this.geometry.setAttribute("instanceColor", new THREE.InstancedBufferAttribute(this.bricksColors, 3))
 
         this.createTweaks()
     }
 
 
-    createTower() {
+    createTower(off: number) {
 
         this.blockCount = 0
         this.currentFloor = 0
@@ -211,15 +215,16 @@ varying vec3 vInstanceColor;
         this.mesh.castShadow = true
         this.noise = new SimplexNoise()
 
-        this.buildFloor()
+        this.buildFloor(off)
 
         this.geometry.setAttribute("instanceColor", new THREE.InstancedBufferAttribute(this.bricksColors, 3))
 
 
     }
 
-    buildFloor() {
+    buildFloor(translation: number) {
         const offset = this.towerParams.offset
+        this.repeatOffset = translation * this.towerParams.towerCount * (this.towerParams.base + offset)
         for (let j = 0; j < this.towerParams.columns; j++) {
             for (let i = 0; i < this.towerParams.towerCount; i++) {
                 this.noise = new SimplexNoise()
@@ -227,23 +232,28 @@ varying vec3 vInstanceColor;
                     this.x,
                     j * (this.x + offset),
                     0,
-                    i * (this.x + offset),
+                    i * (this.x + offset) + this.repeatOffset
                 )
             }
         }
+    }
+    getTowerEndPosZ() {
+        const offset = this.towerParams.offset
+        return this.repeatOffset + this.towerParams.towerCount * (this.x + offset)
     }
 
 
     createCrumbledFloor(splits: number, posX: number, posY: number, posZ: number) {
 
-        const factor = posZ / ((this.towerParams.offset + this.x) * this.towerParams.towerCount) * 0.5
-        const aoc = posZ / ((this.towerParams.offset + this.x) * this.towerParams.towerCount) * 100
+        // console.log(posZ)
+        const factor = posZ / this.musicDurationInBlock * 0.5;//((this.towerParams.offset + this.x) * this.towerParams.towerCount) * 0.5
+        const aoc = posZ / this.musicDurationInBlock * 100;//((this.towerParams.offset + this.x) * this.towerParams.towerCount) * 100
 
         const colors = [
             new THREE.Color(0xAF8F5E),
             // new THREE.Color(0x98B38A),
         ]
-        const crumbleCount = Math.floor(Math.random() * aoc) //+ 1
+        const crumbleCount = Math.floor(Math.random() * aoc) + Math.floor(aoc/100)
 
 
         const crumbles: { x: number, y: number, z: number, rx: number, ry: number, rz: number }[] = []
