@@ -114,19 +114,25 @@ export default class Tower {
                 float areaRest = 1. - areaFactor;
                 float diff = radius * areaRest;
                 float scale = 0.;
+                float posY = 0.;
+                float PosFactor = 4.;
                 if(dist < radius ){
                     if ( dist > radius * areaRest ) {
                         float distT = dist - diff;
                         float radiusT = radius - diff;
                         scale =  1. - distT /radiusT;
+                        posY =  PosFactor - (distT /radiusT * PosFactor);
                     } else {
                         scale = 1.;
+                    posY = PosFactor;
                     }
                     if(scale >0.99 && scale<1.){
                     scale = 1.;
+                    posY = PosFactor;
                     }
                 } else {
                     scale = 0.;
+                    posY = 0.;
                     
                 }
                 
@@ -134,6 +140,8 @@ export default class Tower {
                 // float delay = 1.0 - 1.0 /max(0.01, dist) * 2.; 
 //modelMatrix
 //viewMatrix
+                // transformed.y -= posY;
+                // transformed.z -= posY;
                 transformed *= scale ;//* dist * .1 ;//exp(-0.2 * dist);;//Conseil de flo : utiliser Matric
 
                             
@@ -229,7 +237,7 @@ varying vec3 vInstanceColor;
     createCrumbledFloor(splits: number, posX: number, posY: number, posZ: number) {
 
         const factor = posZ / ((this.towerParams.offset + this.x) * this.towerParams.towerCount) * 0.5
-        const aoc = posZ / ((this.towerParams.offset + this.x)* this.towerParams.towerCount ) * 100
+        const aoc = posZ / ((this.towerParams.offset + this.x) * this.towerParams.towerCount) * 100
 
         const colors = [
             new THREE.Color(0xAF8F5E),
@@ -446,7 +454,7 @@ varying vec3 vInstanceColor;
         this.uniforms.uRadius.value = lerp(
             this.uniforms.uRadius.value,
             100,
-            0.1
+            0.051
         )
         this.uniforms.uCameraPosition.value.copy(this.experience.camera.instance.position);
     }

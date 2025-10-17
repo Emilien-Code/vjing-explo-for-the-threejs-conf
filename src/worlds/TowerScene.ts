@@ -6,6 +6,7 @@ import World from "../classes/World";
 import Tower from "../components/Tower"
 import Medusa from "../components/Medusa";
 import Clouds from "../components/Clouds";
+import AudioAnalyzer from "../utils/AudioAnalyzer";
 import {
     fogPalette,
     fogSettings
@@ -40,12 +41,13 @@ export default class TwoerScene extends World {
         noiseFactor: 0.1,
         amountOfMedusa: 100,
     }
+    private isPlaying = false
 
     private sunmaterial: THREE.MeshBasicMaterial
     private sungeometry: THREE.SphereGeometry
     private sunmesh: THREE.Mesh
     private godRays: GodRays
-
+    private audio : AudioAnalyzer
     constructor(exp: Experience) {
         super();
         this.exp = exp;
@@ -70,8 +72,12 @@ export default class TwoerScene extends World {
         this.sunmesh.position.y = this.tweakParams.lightY
         this.sunmesh.position.z = this.tweakParams.lightZ
         this.scene.add(this.sunmesh)
-
-
+        this.audio = new AudioAnalyzer()
+        this.isPlaying = false
+        window.onclick = () => {
+            this.audio.play()
+            this.isPlaying = true;
+        }
         // this.scene.fog = new THREE.Fog(0x529467, 0, this.tweakParams.fogDistance)
         this.scene.fog = new THREE.FogExp2(fogPalette[0], fogSettings.density);
         this.medusa = new Medusa(this.exp, this.medusaParams)
@@ -156,7 +162,7 @@ export default class TwoerScene extends World {
     }
 
     update() {
-
+        if(!this.isPlaying) return
         //Entry Animation : 
 
         this.exp.camera.instance.position.y = lerp(
