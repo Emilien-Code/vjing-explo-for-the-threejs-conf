@@ -21,6 +21,64 @@ const lerp = (t, i, e) => t * (1 - e) + i * e
 
 
 
+const vignettShaderProperties = {
+
+    uniforms: {
+
+        "tDiffuse": { type: "t", value: null },
+
+        "resolution": { type: "v2", value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
+        "gain": { type: "f", value: 0.9 },
+
+        "horizontal": { type: "bool", value: false },
+        "radius": { type: "f", value: 0.75 },
+        "softness": { type: "f", value: 0.3 },
+
+
+    },
+
+    vertexShader: /*glsl*/`
+
+        varying vec2 vUv;
+
+        void main() {
+
+            vUv = uv;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+
+        }
+
+    `,
+
+    fragmentShader: [
+        "uniform sampler2D tDiffuse;",
+        "uniform vec2 resolution;",
+        "uniform float gain;",
+        "uniform float radius;",
+        "uniform float softness;",
+        "uniform bool horizontal;",
+
+        "varying vec2 vUv;",
+
+        "float rand(vec2 co){",
+        "return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);",
+        "}",
+
+        "void main() {",
+        "vec4 color = texture2D( tDiffuse, vUv );",
+        "vec3 c = color.rgb;",
+        "float noise = rand(gl_FragCoord.xy) * .05;",
+
+        // determine center
+        "vec2 position;",
+        "position = (vUv.xy) - vec2(0.5);",
+        "float len = length(position) * gain;",
+        "gl_FragColor = vec4 ( c * vec3 (smoothstep(radius, radius - softness, len)), 1.0);",
+        "}"
+    ].join("\n")
+
+};
+
 import { ClearPass } from "three/examples/jsm/Addons.js";
 import type TwoerScene from "../worlds/TowerScene";
 
@@ -42,6 +100,7 @@ export default class Renderer {
     private selectiveBloom: SelectiveBloom
     private godRaysBloom: SelectiveBloom
 
+    private vignetteShader : THREE.ShaderMaterial
 
     private colorCorrectionpowRGB_x = 2.2
     private colorCorrectionpowRGB_y = 1.51
@@ -60,6 +119,10 @@ export default class Renderer {
         // tDiffuse: 0,
         // satGreen: 1.5,
         // satOrange: 1.4,
+
+        gain: 2.0,
+        vRadius: .5,
+        softness: .3,
     }
 
     constructor(experience: Experience) {
@@ -134,6 +197,16 @@ export default class Renderer {
         colorCorrection.uniforms['mulRGB'].value = new THREE.Vector3(2.1, 1.505, 0.95);
         this.composer.addPass(colorCorrection);
 
+        this.vignetteShader = new THREE.ShaderMaterial(vignettShaderProperties)
+
+        this.vignetteShader.uniforms["resolution"].value = new THREE.Vector2(window.innerWidth, window.innerHeight);
+        this.vignetteShader.uniforms["horizontal"].value = false; // default is false
+        this.vignetteShader.uniforms["radius"].value = 1.29; // default is 0.75
+        this.vignetteShader.uniforms["softness"].value = 0.39; // default is 0.3
+        this.vignetteShader.uniforms["gain"].value = 1.27; // default is 0.9
+
+        this.composer.addPass(new ShaderPass(this.vignetteShader));
+
     }
 
     createTweaks() {
@@ -171,6 +244,16 @@ export default class Renderer {
             this.effectSobel.enabled = value
             // this.setInstance()
         });
+        folder.add(this.params, 'gain', 0, 2).step(0.01).onChange((value: number) => {
+            this.vignetteShader.uniforms.gain.value = value
+        });
+        folder.add(this.params, 'vRadius', 0, 2).step(0.01).onChange((value: number) => {
+            this.vignetteShader.uniforms.radius.value = value
+
+        });
+        folder.add(this.params, 'softness', 0,2).step(0.01).onChange((value: number) => {
+            this.vignetteShader.uniforms.softness.value = value
+        });
 
 
 
@@ -203,17 +286,17 @@ export default class Renderer {
         //  console.log(this.experience.time.elapsedTime)
         if (
             this.experience.world
-            && (this.experience.world as TwoerScene).isPlaying 
-            && this.experience.time.elapsedTime > 78500
+            && (this.experience.world as TwoerScene).isPlaying
+            && this.experience.time.elapsedTime > 78600
         ) {
             this.params.exposure = 20
         }
-        this.instance.toneMappingExposure = lerp(this.instance.toneMappingExposure, this.params.exposure, 0.01);
+        this.instance.toneMappingExposure = lerp(this.instance.toneMappingExposure, this.params.exposure, 0.05);
         if (this.composer) {
             this.composer.render();
             this.selectiveBloom.update()
             this.godRaysBloom.update()
-            
+
             return
         }
 
