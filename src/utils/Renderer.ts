@@ -17,10 +17,12 @@ import {
     rendererPalette
 } from "../common/colors"
 
+const lerp = (t, i, e) => t * (1 - e) + i * e
 
 
 
 import { ClearPass } from "three/examples/jsm/Addons.js";
+import type TwoerScene from "../worlds/TowerScene";
 
 export default class Renderer {
     public experience: Experience;
@@ -92,18 +94,18 @@ export default class Renderer {
 
         this.renderScene = new RenderPass(this.experience.scene, this.experience.camera.instance/* null, new THREE.Color( 0xff00ff ), 1**/)
         this.renderScene2 = new RenderPass(this.experience.scene, this.experience.camera.instance/* null, new THREE.Color( 0xff00ff ), 1**/)
-        
+
         this.selectiveBloom = new SelectiveBloom(this.experience, jellyFishBloom.layer)
         this.godRaysBloom = new SelectiveBloom(this.experience, godRaysBloom.layer, {
             strength: 0.3,
             radius: 1.48
         })
 
-        // this.bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
-        // this.bloomPass.enabled = this.params.bloom
-        // this.bloomPass.threshold = this.params.threshold;
-        // this.bloomPass.strength = this.params.strength;
-        // this.bloomPass.radius = this.params.radius;
+        this.bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+        this.bloomPass.enabled = this.params.bloom
+        this.bloomPass.threshold = this.params.threshold;
+        this.bloomPass.strength = this.params.strength;
+        this.bloomPass.radius = this.params.radius;
 
 
         this.composer = new EffectComposer(this.instance);
@@ -113,9 +115,9 @@ export default class Renderer {
         this.composer.addPass(this.selectiveBloom.getMixPass);
         this.composer.addPass(this.selectiveBloom.getOutputPass);
 
-         this.composer.addPass(this.renderScene2)
-         this.composer.addPass(this.godRaysBloom.getMixPass);
-         this.composer.addPass(this.godRaysBloom.getOutputPass);
+        this.composer.addPass(this.renderScene2)
+        this.composer.addPass(this.godRaysBloom.getMixPass);
+        this.composer.addPass(this.godRaysBloom.getOutputPass);
         // this.composer.addPass(outputPass);
         console.log('yoyoyo')
 
@@ -127,10 +129,10 @@ export default class Renderer {
         this.effectSobel.uniforms['resolution'].value.y = window.innerHeight * window.devicePixelRatio;
         this.composer.addPass(this.effectSobel);
 
-         const colorCorrection = new ShaderPass(ColorCorrectionShader);
-         colorCorrection.uniforms['powRGB'].value = new THREE.Vector3(2.2, 1.51, 1.0);
-         colorCorrection.uniforms['mulRGB'].value = new THREE.Vector3(2.1, 1.505, 0.95);
-         this.composer.addPass(colorCorrection);
+        const colorCorrection = new ShaderPass(ColorCorrectionShader);
+        colorCorrection.uniforms['powRGB'].value = new THREE.Vector3(2.2, 1.51, 1.0);
+        colorCorrection.uniforms['mulRGB'].value = new THREE.Vector3(2.1, 1.505, 0.95);
+        this.composer.addPass(colorCorrection);
 
     }
 
@@ -197,19 +199,28 @@ export default class Renderer {
 
 
     public update(): void {
-
-
+        // console.log(this.instance.toneMappingExposure)
+        //  console.log(this.experience.time.elapsedTime)
+        if (
+            this.experience.world
+            && (this.experience.world as TwoerScene).isPlaying 
+            && this.experience.time.elapsedTime > 78500
+        ) {
+            this.params.exposure = 20
+        }
+        this.instance.toneMappingExposure = lerp(this.instance.toneMappingExposure, this.params.exposure, 0.01);
         if (this.composer) {
             this.composer.render();
             this.selectiveBloom.update()
             this.godRaysBloom.update()
-
-
+            
             return
         }
 
         this.instance.clear()
         this.instance.render(this.experience.scene, this.camera.instance);
+
+
 
         // this.instance.setRenderTarget(this.cursorTexture)
         // this.instance.render(this.experience.cursorScene, this.orthographicCamera);
