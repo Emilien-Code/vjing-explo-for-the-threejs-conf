@@ -126,7 +126,7 @@ export default class Medusa {
             this.medusas[i].group.add(this.mesh.clone())
             this.medusas[i].group.position.x = getRandomBetween(8, 24);
             this.medusas[i].group.position.y = getRandomBetween(30, 60);
-            this.medusas[i].group.position.z = getRandomBetween(0, 1000);
+            this.medusas[i].group.position.z = getRandomBetween(0, 500);
 
 
             /**
@@ -266,7 +266,7 @@ export default class Medusa {
     }
 
     update() {
-
+        const cameraPos = this.experience.time.elapsedTime * 0.0051
         for (const medusa of this.medusas) {
             if (medusa) {
 
@@ -274,9 +274,11 @@ export default class Medusa {
                     tentac.material.uniforms.uTime.value = this.experience.time.elapsedTime
                 }
 
+                if(Math.abs(cameraPos - medusa.group.position.z) < 100){
 
-                medusa.group.position.addScaledVector(new THREE.Vector3(medusa.direction.x, medusa.direction.y, medusa.direction.z), medusa.velocity * 10)
-                medusa.group.rotation.x += this.time.elapsedTime * 0.00000001 
+                    medusa.group.position.addScaledVector(new THREE.Vector3(medusa.direction.x, medusa.direction.y, medusa.direction.z), medusa.velocity * 10)
+                }
+                medusa.group.rotation.x += this.time.elapsedTime * 0.00000001
 
             }
         }
