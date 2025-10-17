@@ -41,7 +41,7 @@ export default class TwoerScene extends World {
         noiseFactor: 0.1,
         amountOfMedusa: 100,
     }
-    private isPlaying = false
+    public isPlaying = false
 
     private sunmaterial: THREE.MeshBasicMaterial
     private sungeometry: THREE.SphereGeometry
@@ -76,6 +76,7 @@ export default class TwoerScene extends World {
         this.isPlaying = false
         window.onclick = () => {
             this.audio.play()
+            this.exp.time.reset()
             this.isPlaying = true;
         }
         // this.scene.fog = new THREE.Fog(0x529467, 0, this.tweakParams.fogDistance)

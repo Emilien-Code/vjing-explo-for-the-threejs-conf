@@ -1,11 +1,11 @@
 import EventEmitter from "./EventEmitter"
-export default class Time extends EventEmitter{
+export default class Time extends EventEmitter {
 
-    public start : number
-    public current : number
-    public elapsedTime : number
-    public delta : number
-    public isAnimating : boolean
+    public start: number
+    public current: number
+    public elapsedTime: number
+    public delta: number
+    public isAnimating: boolean
 
 
 
@@ -18,21 +18,26 @@ export default class Time extends EventEmitter{
         this.delta = 16 // sth differernt to 0 to prevent bugs and screens running at 60fps by default so why not :)
         this.isAnimating = true
     }
-    tick(){
+    tick() {
         const currentTime = Date.now()
-        this.delta = currentTime - this.current 
+        this.delta = currentTime - this.current
         this.current = currentTime
         this.elapsedTime = this.current - this.start
         this.trigger("tick")
-        if(this.isAnimating){
-            requestAnimationFrame(() => {this.tick()})
+        if (this.isAnimating) {
+            requestAnimationFrame(() => { this.tick() })
         }
     }
-    stop(){
+    reset() {
+        this.elapsedTime = 0
+        this.start = Date.now()
+
+    }
+    stop() {
         this.isAnimating = false
     }
-    animate(){
+    animate() {
         this.isAnimating = true
-        requestAnimationFrame(() => {this.tick()})
+        requestAnimationFrame(() => { this.tick() })
     }
 }
