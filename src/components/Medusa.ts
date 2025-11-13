@@ -1,11 +1,10 @@
-import * as THREE from 'three'
 import type GUI from 'lil-gui';
+import * as THREE from 'three';
 
-import Experience from "../Experience"
-import { SimplexNoise } from "../utils/noise"
-import { jellyFishPalette, godRaysBloom as jellyFishBloom } from '../common/colors';
+import { godRaysBloom as jellyFishBloom, jellyFishPalette } from '../common/colors';
+import Experience from "../Experience";
+import { SimplexNoise } from "../utils/noise";
 import type Time from '../utils/Time';
-import { positionGeometry } from 'three/tsl';
 const getRandomBetween = (min: number, max: number) => Math.random() * (max - min) + min
 
 

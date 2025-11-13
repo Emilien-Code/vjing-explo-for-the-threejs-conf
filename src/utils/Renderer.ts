@@ -287,11 +287,11 @@ export default class Renderer {
         if (
             this.experience.world
             && (this.experience.world as TwoerScene).isPlaying
-            && this.experience.time.elapsedTime > 78600
+            && this.experience.time.elapsedTime > 78300
         ) {
             this.params.exposure = 20
         }
-        this.instance.toneMappingExposure = lerp(this.instance.toneMappingExposure, this.params.exposure, 0.05);
+        this.instance.toneMappingExposure = lerp(this.instance.toneMappingExposure, this.params.exposure, 0.01);
         if (this.composer) {
             this.composer.render();
             this.selectiveBloom.update()
