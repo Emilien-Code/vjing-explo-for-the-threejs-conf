@@ -9,6 +9,7 @@ import { SobelOperatorShader } from 'three/addons/shaders/SobelOperatorShader.js
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import SelectiveBloom from "./SelectiveBloom";
 import { ColorCorrectionShader } from 'three/examples/jsm/shaders/ColorCorrectionShader.js';
+import { RGBShiftShader } from 'three/examples/jsm/shaders/RGBShiftShader.js';
 
 
 import {
@@ -80,6 +81,7 @@ const vignettShaderProperties = {
 };
 
 import { ClearPass } from "three/examples/jsm/Addons.js";
+import { AsciiPass } from "./AsciiPass";
 import type TwoerScene from "../worlds/TowerScene";
 
 export default class Renderer {
@@ -100,7 +102,9 @@ export default class Renderer {
     private selectiveBloom: SelectiveBloom
     private godRaysBloom: SelectiveBloom
 
-    private vignetteShader : THREE.ShaderMaterial
+    private vignetteShader: THREE.ShaderMaterial
+    private asciiPass: AsciiPass
+    private rgbShiftPass: ShaderPass
 
     private colorCorrectionpowRGB_x = 2.2
     private colorCorrectionpowRGB_y = 1.51
@@ -123,6 +127,13 @@ export default class Renderer {
         gain: 2.0,
         vRadius: .5,
         softness: .3,
+
+        ascii: false,
+        asciiCellSize: 10,
+
+        rgbShift: false,
+        rgbShiftAmount: 0.005,
+        rgbShiftAngle: 0.0,
     }
 
     constructor(experience: Experience) {
@@ -147,7 +158,8 @@ export default class Renderer {
         this.instance.toneMappingExposure = this.params.exposure;
         this.instance.shadowMap.enabled = true;
         this.instance.shadowMap.type = THREE.PCFSoftShadowMap;
-        this.instance.setClearColor(rendererPalette[0], 1);
+        // this.instance.setClearColor(rendererPalette[0], 1);
+        this.instance.setClearColor(0x000000, 1);
         this.instance.setSize(this.sizes.width, this.sizes.height);
         this.instance.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         this.instance.physicallyCorrectLights = true
@@ -193,9 +205,18 @@ export default class Renderer {
         this.composer.addPass(this.effectSobel);
 
         const colorCorrection = new ShaderPass(ColorCorrectionShader);
-        colorCorrection.uniforms['powRGB'].value = new THREE.Vector3(2.2, 1.51, 1.0);
-        colorCorrection.uniforms['mulRGB'].value = new THREE.Vector3(2.1, 1.505, 0.95);
+        // colorCorrection.uniforms['powRGB'].value = new THREE.Vector3(2.2, 1.51, 1.0);
+        // colorCorrection.uniforms['mulRGB'].value = new THREE.Vector3(2.1, 1.505, 0.95);
         this.composer.addPass(colorCorrection);
+
+        this.asciiPass = new AsciiPass(window.innerWidth, window.innerHeight);
+        this.composer.addPass(this.asciiPass);
+
+        this.rgbShiftPass = new ShaderPass(RGBShiftShader);
+        this.rgbShiftPass.uniforms['amount'].value = this.params.rgbShiftAmount;
+        this.rgbShiftPass.uniforms['angle'].value = this.params.rgbShiftAngle;
+        this.rgbShiftPass.enabled = this.params.rgbShift;
+        this.composer.addPass(this.rgbShiftPass);
 
         this.vignetteShader = new THREE.ShaderMaterial(vignettShaderProperties)
 
@@ -251,8 +272,25 @@ export default class Renderer {
             this.vignetteShader.uniforms.radius.value = value
 
         });
-        folder.add(this.params, 'softness', 0,2).step(0.01).onChange((value: number) => {
+        folder.add(this.params, 'softness', 0, 2).step(0.01).onChange((value: number) => {
             this.vignetteShader.uniforms.softness.value = value
+        });
+
+        folder.add(this.params, 'ascii').onChange((value: boolean) => {
+            this.asciiPass.enabled = value;
+        });
+        folder.add(this.params, 'asciiCellSize', 4, 32).step(1).onChange((value: number) => {
+            this.asciiPass.cellSize = value;
+        });
+
+        folder.add(this.params, 'rgbShift').onChange((value: boolean) => {
+            this.rgbShiftPass.enabled = value;
+        });
+        folder.add(this.params, 'rgbShiftAmount', 0.0, 0.05).step(0.001).onChange((value: number) => {
+            this.rgbShiftPass.uniforms['amount'].value = value;
+        });
+        folder.add(this.params, 'rgbShiftAngle', 0.0, Math.PI * 2).step(0.01).onChange((value: number) => {
+            this.rgbShiftPass.uniforms['angle'].value = value;
         });
 
 
@@ -329,5 +367,6 @@ export default class Renderer {
         this.instance.setSize(this.experience.sizes.width, this.experience.sizes.height);
         this.instance.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         this.composer && this.composer.setSize(this.experience.sizes.width, this.experience.sizes.height);
+        this.asciiPass && this.asciiPass.setSize(this.experience.sizes.width, this.experience.sizes.height);
     }
 }
