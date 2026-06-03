@@ -132,7 +132,7 @@ export default class Renderer {
         asciiCellSize: 10,
 
         rgbShift: false,
-        rgbShiftAmount: 0.005,
+        rgbShiftAmount: 0.001,
         rgbShiftAngle: 0.0,
     }
 
