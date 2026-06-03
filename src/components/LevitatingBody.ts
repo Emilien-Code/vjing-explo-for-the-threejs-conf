@@ -19,6 +19,7 @@ export default class LevitatingBody extends World {
     private ambientLight!: THREE.AmbientLight
 
     private holder: THREE.Object3D
+    private guiFolder!: GUI
 
     private params = {
         color: 0xffffff,
@@ -92,7 +93,8 @@ export default class LevitatingBody extends World {
     }
 
     private setupGUI() {
-        const folder = this.gui.addFolder('levitating_body')
+        this.guiFolder = this.gui.addFolder('levitating_body')
+        const folder = this.guiFolder
 
         // folder.addColor(this.params, 'color')
         //     .name('Noise Color')
@@ -122,6 +124,12 @@ export default class LevitatingBody extends World {
         folder.add(this.params, 'lightZ', -10, 10, 0.1)
             .name('Z')
             .onChange((v: number) => { this.directionalLight.position.z = v })
+
+        this.guiFolder.hide()
+    }
+
+    showGUI(v: boolean) {
+        v ? this.guiFolder.show() : this.guiFolder.hide()
     }
 
     setVisible(v: boolean) {

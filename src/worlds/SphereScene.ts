@@ -81,14 +81,14 @@ export default class GlassScene extends World {
 
     private setupGUI() {
         const folder = this.gui.addFolder('Visibility')
-        folder.add(this.visibility, 'sphere').name('Sphere').onChange((v: boolean) => this.sphere.setVisible(v))
-        folder.add(this.visibility, 'phd').name('Particle Dancing').onChange((v: boolean) => this.phd.setVisible(v))
-        folder.add(this.visibility, 'phdDamp').name('Centrifugal Particles').onChange((v: boolean) => this.phdDamp.setVisible(v))
+        folder.add(this.visibility, 'sphere').name('Sphere').onChange((v: boolean) => { this.sphere.setVisible(v); this.sphere.showGUI(v) })
+        folder.add(this.visibility, 'phd').name('Particle Dancing').onChange((v: boolean) => { this.phd.setVisible(v); this.phd.showGUI(v) })
+        folder.add(this.visibility, 'phdDamp').name('Centrifugal Particles').onChange((v: boolean) => { this.phdDamp.setVisible(v); this.phdDamp.showGUI(v) })
         folder.add(this.visibility, 'water').name('Water').onChange((v: boolean) => { this.water.water.visible = v })
-        folder.add(this.visibility, 'levitatingBody').name('Levitating Body').onChange((v: boolean) => this.levitatingBody.setVisible(v))
-        folder.add(this.visibility, 'squares').name('Squares').onChange((v: boolean) => this.squares.setVisible(v))
-        folder.add(this.visibility, 'dancingBody').name('Dancing Body').onChange((v: boolean) => this.dancingBody.setVisible(v))
-        folder.add(this.visibility, 'fallingBody').name('Falling Body').onChange((v: boolean) => this.fallingBody.setVisible(v))
+        folder.add(this.visibility, 'levitatingBody').name('Levitating Body').onChange((v: boolean) => { this.levitatingBody.setVisible(v); this.levitatingBody.showGUI(v) })
+        folder.add(this.visibility, 'squares').name('Squares').onChange((v: boolean) => { this.squares.setVisible(v); this.squares.showGUI(v) })
+        folder.add(this.visibility, 'dancingBody').name('Dancing Body').onChange((v: boolean) => { this.dancingBody.setVisible(v); this.dancingBody.showGUI(v) })
+        folder.add(this.visibility, 'fallingBody').name('Falling Body').onChange((v: boolean) => { this.fallingBody.setVisible(v); this.fallingBody.showGUI(v) })
     }
 
     onBPMBeat() {

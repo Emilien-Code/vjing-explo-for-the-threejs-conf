@@ -19,6 +19,7 @@ export default class FallingBody extends World {
     private ambientLight!: THREE.AmbientLight
 
     private holder: THREE.Object3D
+    private guiFolder!: GUI
     private lightAngle = 0
     private lightRadius = Math.sqrt(2 ** 2 + 3 ** 2)
 
@@ -94,7 +95,8 @@ export default class FallingBody extends World {
     }
 
     private setupGUI() {
-        const folder = this.gui.addFolder('falling_body')
+        this.guiFolder = this.gui.addFolder('falling_body')
+        const folder = this.guiFolder
 
         // folder.addColor(this.params, 'color')
         //     .name('Noise Color')
@@ -125,6 +127,12 @@ export default class FallingBody extends World {
             .onChange((v: number) => { this.directionalLight.position.y = v })
         folder.add(this.params, 'lightOrbitSpeed', 0, 0.1, 0.001)
             .name('Orbit Speed')
+
+        this.guiFolder.hide()
+    }
+
+    showGUI(v: boolean) {
+        v ? this.guiFolder.show() : this.guiFolder.hide()
     }
 
     setVisible(v: boolean) {

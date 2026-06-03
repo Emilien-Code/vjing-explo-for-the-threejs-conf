@@ -95,6 +95,7 @@ export default class DancingBody extends World {
     private prevTargetData!: Float32Array
 
     private bodyMaterial: THREE.MeshBasicMaterial
+    private guiFolder!: GUI
     private params = {
         particleCount: 30000,
         size: 0.005,
@@ -391,7 +392,8 @@ void main() {
     }
 
     private setupGUI() {
-        const folder = this.gui.addFolder('DancingBody')
+        this.guiFolder = this.gui.addFolder('DancingBody')
+        const folder = this.guiFolder
 
         folder.add(this.params, 'particleCount', 1000, 50000, 1000)
             .name('Count')
@@ -445,6 +447,12 @@ void main() {
             .onChange((v: THREE.Color) => {
                 if (!this.params.bodyLight) this.bodyMaterial.color = v
             })
+
+        this.guiFolder.hide()
+    }
+
+    showGUI(v: boolean) {
+        v ? this.guiFolder.show() : this.guiFolder.hide()
     }
 
     onBPMBeat() {

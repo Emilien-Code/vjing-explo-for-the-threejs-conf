@@ -112,6 +112,7 @@ export default class ParticleHumanDancing extends World {
     private exp: Experience;
     private scene: THREE.Scene
     private gui: GUI
+    private guiFolder!: GUI
     private holder: THREE.Object3D
     private model!: THREE.Object3D
     private points: THREE.Points | null = null
@@ -560,7 +561,8 @@ ${simplex4DNoise}
     }
 
     private setupGUI() {
-        const folder = this.gui.addFolder('Particles')
+        this.guiFolder = this.gui.addFolder('Particles')
+        const folder = this.guiFolder
 
         folder.add(this.params, 'particleCount', 1000, 50000, 1000)
             .name('Count')
@@ -602,6 +604,12 @@ ${simplex4DNoise}
             .onChange((v: number) => {
                 this.gpgpu.particlesVariable.material.uniforms.uFlowFieldFactor.value = v
             })
+
+        this.guiFolder.hide()
+    }
+
+    showGUI(v: boolean) {
+        v ? this.guiFolder.show() : this.guiFolder.hide()
     }
 
     destroyMesh() {

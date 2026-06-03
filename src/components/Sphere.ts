@@ -108,6 +108,7 @@ export default class Sphere extends World {
     private uniforms: { [key: string]: THREE.IUniform }
 
     private holder: THREE.Object3D
+    private guiFolder!: GUI
     private params = {
         noiseScale: 20.0,
         color1: '#9ABCF6',
@@ -260,8 +261,9 @@ export default class Sphere extends World {
         this.scene.add(this.holder)
     }
     private setupGUI() {
-        const noiseFolder = this.gui.addFolder('Noise')
+        this.guiFolder = this.gui.addFolder('Sphere')
 
+        const noiseFolder = this.guiFolder.addFolder('Noise')
         noiseFolder.add(this.params, 'noiseScale', 0.1, 100.0, 0.1).onChange((v: number) => {
             this.uniforms.uNoiseScale.value = v
         })
@@ -270,9 +272,7 @@ export default class Sphere extends World {
             console.log(this.uniforms)
         })
 
-
-
-        const gradientFolder = this.gui.addFolder('Gradient')
+        const gradientFolder = this.guiFolder.addFolder('Gradient')
         gradientFolder.addColor(this.params, 'color1').name('Color A').onChange((v: string) => {
             this.uniforms.uColor1.value.set(v)
         })
@@ -286,13 +286,19 @@ export default class Sphere extends World {
             this.uniforms.uElevationIntensity.value = v
         })
 
-        const grainFolder = this.gui.addFolder('Grain')
+        const grainFolder = this.guiFolder.addFolder('Grain')
         grainFolder.add(this.params, 'grainAmount', 0.0, 0.5, 0.001).name('Amount').onChange((v: number) => {
             this.uniforms.uGrainAmount.value = v
         })
         grainFolder.add(this.params, 'grainDensity', 0.1, 5.0, 0.1).name('Density').onChange((v: number) => {
             this.uniforms.uGrainDensity.value = v
         })
+
+        this.guiFolder.hide()
+    }
+
+    showGUI(v: boolean) {
+        v ? this.guiFolder.show() : this.guiFolder.hide()
     }
 
     onBPMBeat() {

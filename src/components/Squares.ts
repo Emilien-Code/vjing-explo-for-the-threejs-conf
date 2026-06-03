@@ -11,6 +11,7 @@ export default class Squares extends World {
     private gui: GUI
 
     private group: THREE.Group
+    private guiFolder!: GUI
     private rings: THREE.Group[] = []
     private boxes: THREE.Mesh[] = []
     private mat!: CustomToonMaterial
@@ -110,7 +111,8 @@ export default class Squares extends World {
     }
 
     private setupGUI() {
-        const folder = this.gui.addFolder('Squares')
+        this.guiFolder = this.gui.addFolder('Squares')
+        const folder = this.guiFolder
 
         folder.add(this.params, 'count', 3, 32, 1).name('Count').onChange(() => this.createBoxes())
         folder.add(this.params, 'radius', 1, 20, 0.1).name('Radius').onChange(() => this.createBoxes())
@@ -136,6 +138,12 @@ export default class Squares extends World {
             this.mat.uniforms.noiseDensity.value = v
         })
         folder.add(this.params, 'speed', 0, 1, 0.01).name('Noise Speed')
+
+        this.guiFolder.hide()
+    }
+
+    showGUI(v: boolean) {
+        v ? this.guiFolder.show() : this.guiFolder.hide()
     }
 
     setVisible(v: boolean) {
