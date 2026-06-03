@@ -29,11 +29,11 @@ export default class SelectiveBloom {
         strength: 0.7,
         radius: 0.5,
         exposure: 1,
-        bloom: true
+        bloom: false
     };
 
 
-    constructor(experience: Experience, bloom_scene?: number, properties ?: {
+    constructor(experience: Experience, bloom_scene?: number, properties?: {
         radius?: number
         strength?: number
         threshold?: number
@@ -59,6 +59,7 @@ export default class SelectiveBloom {
         this.bloomPass.threshold = this.params.threshold;
         this.bloomPass.strength = this.params.strength;
         this.bloomPass.radius = this.params.radius;
+        this.bloomPass.enabled = false;
 
 
         this.bloomComposer = new EffectComposer(this.renderer);
@@ -160,7 +161,7 @@ export default class SelectiveBloom {
             // this.instance.toneMappingExposure = value;
         });
 
-folder.close()
+        folder.close()
     }
 
     darkenNonBloomed(obj: any) {
@@ -188,7 +189,8 @@ folder.close()
     }
 
     restoreMaterial(obj: any) {
-        this.scene.background = new THREE.Color(fogPalette[0])
+        // this.scene.background = new THREE.Color(fogPalette[0])
+        this.scene.background = new THREE.Color(0x000000)
         this.scene.fog && (this.scene.fog.color = new THREE.Color(fogPalette[0]))
         // this.renderer.toneMappingExposure = this.rendererExposure // FONCTIONNE PAS
 
