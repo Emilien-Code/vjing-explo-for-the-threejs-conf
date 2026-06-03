@@ -94,6 +94,7 @@ export default class DancingBody extends World {
     private prevTargetPositionsTexture!: THREE.DataTexture
     private prevTargetData!: Float32Array
 
+    private bodyMaterial: THREE.MeshBasicMaterial
     private params = {
         particleCount: 30000,
         size: 0.005,
@@ -103,6 +104,9 @@ export default class DancingBody extends World {
         centrifugalFactor: 0,
         flowFieldFactor: 0,
         showMesh: true,
+        bodyLight: true,
+        lightColor: new THREE.Color(0xffffff),
+        darkColor: new THREE.Color(0x000000),
     }
 
     constructor(exp: Experience) {
@@ -117,6 +121,7 @@ export default class DancingBody extends World {
         this.material = {} as any
         this.gpgpu = {} as any
         this.geometry = {} as any
+        this.bodyMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 })
 
         this.setupModel()
         this.createBaseGeometry()
@@ -136,9 +141,11 @@ export default class DancingBody extends World {
         model.rotation.y = Math.PI / 4
         model.rotation.x = Math.PI / 4
 
+        this.bodyMaterial.color = this.params.bodyLight ? this.params.lightColor : this.params.darkColor
+
         model.traverse((el: THREE.Object3D) => {
             if (el instanceof THREE.SkinnedMesh) {
-                el.material = new THREE.MeshBasicMaterial({ color: 0xffffff })
+                el.material = this.bodyMaterial
                 el.visible = this.params.showMesh
             }
         })
@@ -419,6 +426,24 @@ void main() {
                 this.gltf.scene.traverse((el: THREE.Object3D) => {
                     if (el instanceof THREE.SkinnedMesh) el.visible = v
                 })
+            })
+
+        folder.add(this.params, 'bodyLight')
+            .name('Body Light')
+            .onChange((v: boolean) => {
+                this.bodyMaterial.color = v ? this.params.lightColor : this.params.darkColor
+            })
+
+        folder.addColor(this.params, 'lightColor')
+            .name('Light Color')
+            .onChange((v: THREE.Color) => {
+                if (this.params.bodyLight) this.bodyMaterial.color = v
+            })
+
+        folder.addColor(this.params, 'darkColor')
+            .name('Dark Color')
+            .onChange((v: THREE.Color) => {
+                if (!this.params.bodyLight) this.bodyMaterial.color = v
             })
     }
 
