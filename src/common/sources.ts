@@ -46,6 +46,11 @@ const sources = [
         type: "GLTFModel",
         path: ["/pose_falling_2.glb"]
     },
+    {
+        name: "dansing_model",
+        type: "GLTFModel",
+        path: ["/swing_dance.glb"]
+    },
 
 
 ]

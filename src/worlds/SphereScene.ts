@@ -9,6 +9,7 @@ import ParticleHumanDancingDamp from "../components/CentrfugalParticleHumanDanci
 import Water from "../components/Water"
 import LevitatingBody from "../components/LevitatingBody";
 import Squares from "../components/Squares";
+import DancingBody from "../components/DancingBody";
 
 export default class GlassScene extends World {
 
@@ -22,6 +23,7 @@ export default class GlassScene extends World {
     private declare water: Water;
     private declare levitatingBody: LevitatingBody;
     private squares!: Squares;
+    private dancingBody!: DancingBody;
 
 
     constructor(exp: Experience) {
@@ -35,7 +37,7 @@ export default class GlassScene extends World {
         // this.sphere = new Sphere(this.exp)
         // this.phd = new ParticleHumanDancing(this.exp)
 
-        this.phdDamp = new ParticleHumanDancingDamp(this.exp)
+        // this.phdDamp = new ParticleHumanDancingDamp(this.exp)
 
         this.water = new Water(this.exp, {
             color: 0xffffff,
@@ -49,7 +51,7 @@ export default class GlassScene extends World {
         this.scene.add(this.water.water)
         this.levitatingBody = new LevitatingBody(this.exp)
         this.squares = new Squares(this.exp)
-
+        this.dancingBody = new DancingBody(this.exp)
         this.setupGUI()
     }
 
@@ -67,10 +69,11 @@ export default class GlassScene extends World {
     update() {
         // this.sphere.update()
         // this.phd.update()
-        this.phdDamp.update()
+        // this.phdDamp.update()
         this.water.update()
         this.levitatingBody.update()
         this.squares.update()
+        this.dancingBody.update()
     }
 
     leave() {
