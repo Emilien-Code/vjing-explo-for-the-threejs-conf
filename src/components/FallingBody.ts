@@ -15,9 +15,6 @@ export default class FallingBody extends World {
     private mat!: CustomToonMaterial
     private mixer!: THREE.AnimationMixer
 
-    private directionalLight!: THREE.DirectionalLight
-    private ambientLight!: THREE.AmbientLight
-
     private holder: THREE.Object3D
     private guiFolder!: GUI
     private lightAngle = 0
@@ -75,13 +72,6 @@ export default class FallingBody extends World {
         poseFalling.rotation.x = Math.PI
         this.scene.add(poseFalling)
 
-        this.directionalLight = new THREE.DirectionalLight(0xffffff, 2)
-        this.directionalLight.position.set(2, 4, 3)
-        this.scene.add(this.directionalLight)
-
-        this.ambientLight = new THREE.AmbientLight(0xffffff, 0.2)
-        this.scene.add(this.ambientLight)
-
         this.mixer = new THREE.AnimationMixer(poseFalling)
         if (this.gltf.animations.length > 0) {
             const action = this.mixer.clipAction(this.gltf.animations[0])
@@ -124,7 +114,6 @@ export default class FallingBody extends World {
 
         folder.add(this.params, 'lightY', -10, 10, 0.1)
             .name('Light Y')
-            .onChange((v: number) => { this.directionalLight.position.y = v })
         folder.add(this.params, 'lightOrbitSpeed', 0, 0.1, 0.001)
             .name('Orbit Speed')
 
@@ -153,14 +142,12 @@ export default class FallingBody extends World {
 
         this.lightAngle += this.params.lightOrbitSpeed
         const target = this.gltf.scene.position
-        this.directionalLight.position.x = target.x + this.lightRadius * Math.cos(this.lightAngle)
-        this.directionalLight.position.z = target.z + this.lightRadius * Math.sin(this.lightAngle)
-        this.directionalLight.position.y = this.params.lightY
+        const lx = this.lightRadius * Math.cos(this.lightAngle)
+        const ly = this.params.lightY - target.y
+        const lz = this.lightRadius * Math.sin(this.lightAngle)
+        this.mat.uniforms.uLightDir.value.set(lx, ly, lz).normalize()
     }
 
-    leave() {
-        this.scene.remove(this.directionalLight)
-        this.scene.remove(this.ambientLight)
-    }
+    leave() { }
 
 }

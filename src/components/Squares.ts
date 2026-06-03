@@ -16,9 +16,6 @@ export default class Squares extends World {
     private boxes: THREE.Mesh[] = []
     private mat!: CustomToonMaterial
 
-    private directionalLight!: THREE.DirectionalLight
-    private ambientLight!: THREE.AmbientLight
-
     private params = {
         count: 8,
         radius: 2,
@@ -46,7 +43,6 @@ export default class Squares extends World {
 
         this.createMaterial()
         this.createBoxes()
-        this.addLights()
         this.scene.add(this.group)
 
         this.setupGUI()
@@ -59,15 +55,6 @@ export default class Squares extends World {
             noiseColor: this.params.noiseColor,
         }, this.params.threshold)
         this.mat.uniforms.noiseDensity.value = this.params.noiseDensity
-    }
-
-    private addLights() {
-        this.directionalLight = new THREE.DirectionalLight(0xffffff, 2)
-        this.directionalLight.position.set(2, 4, 3)
-        this.scene.add(this.directionalLight)
-
-        this.ambientLight = new THREE.AmbientLight(0xffffff, 0.2)
-        this.scene.add(this.ambientLight)
     }
 
     private createBoxes() {
@@ -189,8 +176,6 @@ export default class Squares extends World {
         this.boxes = []
         this.rings = []
         this.scene.remove(this.group)
-        this.scene.remove(this.directionalLight)
-        this.scene.remove(this.ambientLight)
         this.mat.dispose()
     }
 }

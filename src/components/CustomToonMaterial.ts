@@ -76,6 +76,9 @@ uniform float threshold;
 uniform float noiseDensity;
 uniform vec3 noiseColor;
 uniform vec3 baseColor;
+uniform vec3 uLightDir;
+uniform vec3 uLightColor;
+uniform float uLightIntensity;
 
 float remap(float value, float inMin, float inMax, float outMin, float outMax) {
     return outMin + (outMax - outMin) * (value - inMin) / (inMax - inMin);
@@ -138,26 +141,9 @@ vec3 getGradientIrradiance( vec3 normal, vec3 lightDirection ) {
 }
 
 #include <bsdfs>
-#include <lights_pars_begin>
 #include <normal_pars_fragment>
 
 varying vec3 vViewPosition;
-
-struct ToonMaterial {
-    vec3 diffuseColor;
-};
-
-void RE_Direct_Toon( const in IncidentLight directLight, const in vec3 geometryPosition, const in vec3 geometryNormal, const in vec3 geometryViewDir, const in vec3 geometryClearcoatNormal, const in ToonMaterial material, inout ReflectedLight reflectedLight ) {
-    vec3 irradiance = getGradientIrradiance( geometryNormal, directLight.direction ) * directLight.color;
-    reflectedLight.directDiffuse += irradiance;
-}
-
-void RE_IndirectDiffuse_Toon( const in vec3 irradiance, const in vec3 geometryPosition, const in vec3 geometryNormal, const in vec3 geometryViewDir, const in vec3 geometryClearcoatNormal, const in ToonMaterial material, inout ReflectedLight reflectedLight ) {
-    reflectedLight.indirectDiffuse += irradiance * BRDF_Lambert( material.diffuseColor );
-}
-
-#define RE_Direct                RE_Direct_Toon
-#define RE_IndirectDiffuse       RE_IndirectDiffuse_Toon
 
 #include <shadowmap_pars_fragment>
 #include <normalmap_pars_fragment>
@@ -168,8 +154,6 @@ void main() {
     #include <clipping_planes_fragment>
 
     vec4 diffuseColor = vec4( diffuse, opacity );
-    ReflectedLight reflectedLight = ReflectedLight( vec3( 0.0 ), vec3( 0.0 ), vec3( 0.0 ), vec3( 0.0 ) );
-    vec3 totalEmissiveRadiance = emissive;
 
     #include <logdepthbuf_fragment>
     #include <map_fragment>
@@ -179,12 +163,9 @@ void main() {
     #include <normal_fragment_begin>
     #include <normal_fragment_maps>
 
-    #include <lights_toon_fragment>
-    #include <lights_fragment_begin>
-    #include <lights_fragment_maps>
-    #include <lights_fragment_end>
+    vec3 directDiffuse = getGradientIrradiance(vNormalW, normalize(uLightDir)) * uLightColor * uLightIntensity;
 
-    vec3 outgoingLight = mix(noiseColor, baseColor * material.diffuseColor, saturate(reflectedLight.directDiffuse));
+    vec3 outgoingLight = mix(noiseColor, baseColor * diffuseColor.rgb, saturate(directDiffuse));
 
     #include <opaque_fragment>
 
@@ -203,12 +184,12 @@ export default class CustomToonMaterial extends THREE.MeshToonMaterial {
         baseColor: THREE.ColorRepresentation
         noiseColor: THREE.ColorRepresentation
         color: THREE.ColorRepresentation
-
     }, threshold = 0.7) {
         super()
+        this.lights = false
 
         this.uniforms = {
-            ...THREE.ShaderLib.phong.uniforms,
+            ...THREE.ShaderLib.toon.uniforms,
             diffuse: { value: new THREE.Color(color.color) },
             noiseColor: { value: new THREE.Color(color.noiseColor) },
             baseColor: { value: new THREE.Color(color.baseColor) },
@@ -217,6 +198,9 @@ export default class CustomToonMaterial extends THREE.MeshToonMaterial {
             noiseDensity: { value: 1.0 },
             uvSprite: { value: new THREE.Vector4(0, 1, 0, 1) },
             uvOrigin: { value: new THREE.Vector4(0, 1, 0, 1) },
+            uLightDir: { value: new THREE.Vector3(2, 4, 3).normalize() },
+            uLightColor: { value: new THREE.Color(0xffffff) },
+            uLightIntensity: { value: 2.0 },
         }
 
         this.vertexShader = vertexShader
