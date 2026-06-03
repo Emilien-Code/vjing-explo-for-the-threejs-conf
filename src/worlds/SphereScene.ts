@@ -91,6 +91,10 @@ export default class GlassScene extends World {
         folder.add(this.visibility, 'fallingBody').name('Falling Body').onChange((v: boolean) => { this.fallingBody.setVisible(v); this.fallingBody.showGUI(v) })
     }
 
+    onReady() {
+        this.squares.onReady()
+    }
+
     onBPMBeat() {
         if (!this.exp.audioManager || !this.exp.bpmManager) return
 

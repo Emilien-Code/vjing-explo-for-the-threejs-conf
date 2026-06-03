@@ -3,6 +3,7 @@ import * as THREE from "three"
 import GUI from "lil-gui"
 import World from "../classes/World"
 import CustomToonMaterial from "./CustomToonMaterial"
+import Clouds from "./Clouds"
 
 export default class Squares extends World {
 
@@ -18,6 +19,7 @@ export default class Squares extends World {
 
     private directionalLight!: THREE.DirectionalLight
     private ambientLight!: THREE.AmbientLight
+    private clouds!: Clouds
 
     private params = {
         count: 8,
@@ -48,6 +50,20 @@ export default class Squares extends World {
         this.createBoxes()
         this.addLights()
         this.scene.add(this.group)
+
+        this.clouds = new Clouds(this.exp, {
+            x: 0,
+            y: 0,
+            z: -200,
+            clouds: 800,
+            yAmplitude: 8,
+            cloudOpacity: 0.05,
+            blending: THREE.AdditiveBlending,
+            scaleAspect: 5,
+            spreadX: 6,
+            spreadZ: 220,
+            textureKey: 'noise',
+        })
 
         this.setupGUI()
     }
@@ -142,12 +158,18 @@ export default class Squares extends World {
         this.guiFolder.hide()
     }
 
+    onReady() {
+        this.clouds.createClouds()
+    }
+
     showGUI(v: boolean) {
         v ? this.guiFolder.show() : this.guiFolder.hide()
+        this.clouds.showGUI(v)
     }
 
     setVisible(v: boolean) {
         this.group.visible = v
+        this.clouds.setVisible(v)
     }
 
     onBPMBeat() {
@@ -192,5 +214,6 @@ export default class Squares extends World {
         this.scene.remove(this.directionalLight)
         this.scene.remove(this.ambientLight)
         this.mat.dispose()
+        this.clouds.dispose()
     }
 }
