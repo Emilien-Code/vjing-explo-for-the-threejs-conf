@@ -51,6 +51,11 @@ const sources = [
         type: "GLTFModel",
         path: ["/swing_dance.glb"]
     },
+    {
+        name: "sphere_color",
+        type: "texture",
+        path: ["/sphere_color.jpg"]
+    },
 
 
 ]
