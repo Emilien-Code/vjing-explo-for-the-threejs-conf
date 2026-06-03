@@ -10,6 +10,7 @@ import Water from "../components/Water"
 import LevitatingBody from "../components/LevitatingBody";
 import Squares from "../components/Squares";
 import DancingBody from "../components/DancingBody";
+import FallingBody from "../components/FallingBody";
 
 export default class GlassScene extends World {
 
@@ -22,6 +23,7 @@ export default class GlassScene extends World {
     private phdDamp!: ParticleHumanDancingDamp;
     private declare water: Water;
     private declare levitatingBody: LevitatingBody;
+    private declare fallingBody: FallingBody;
     private squares!: Squares;
     private dancingBody!: DancingBody;
 
@@ -33,6 +35,7 @@ export default class GlassScene extends World {
         levitatingBody: false,
         squares: false,
         dancingBody: false,
+        fallingBody: false,
     }
 
     constructor(exp: Experience) {
@@ -57,6 +60,7 @@ export default class GlassScene extends World {
         this.water.water.position.y = -3.951592653589793
         this.scene.add(this.water.water)
         this.levitatingBody = new LevitatingBody(this.exp)
+        this.fallingBody = new FallingBody(this.exp)
         this.squares = new Squares(this.exp)
         this.dancingBody = new DancingBody(this.exp)
         this.setupGUI()
@@ -71,6 +75,7 @@ export default class GlassScene extends World {
         this.water.water.visible = false
         this.levitatingBody.setVisible(false)
         this.squares.setVisible(false)
+        this.fallingBody.setVisible(false)
         this.dancingBody.setVisible(false)
     }
 
@@ -83,6 +88,7 @@ export default class GlassScene extends World {
         folder.add(this.visibility, 'levitatingBody').name('Levitating Body').onChange((v: boolean) => this.levitatingBody.setVisible(v))
         folder.add(this.visibility, 'squares').name('Squares').onChange((v: boolean) => this.squares.setVisible(v))
         folder.add(this.visibility, 'dancingBody').name('Dancing Body').onChange((v: boolean) => this.dancingBody.setVisible(v))
+        folder.add(this.visibility, 'fallingBody').name('Falling Body').onChange((v: boolean) => this.fallingBody.setVisible(v))
     }
 
     onBPMBeat() {
@@ -99,6 +105,7 @@ export default class GlassScene extends World {
         this.levitatingBody.update()
         this.squares.update()
         this.dancingBody.update()
+        this.fallingBody.update()
     }
 
     leave() {
