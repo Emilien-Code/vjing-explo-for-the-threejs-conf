@@ -62,6 +62,7 @@ export default class LevitatingBody extends World {
             if (el instanceof THREE.SkinnedMesh) {
                 el.material = this.mat
             }
+            el.layers.enable(6)
         })
         poseFalling.position.y += 0.4
         poseFalling.scale.set(0.05, 0.05, 0.05)
