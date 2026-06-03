@@ -3,6 +3,7 @@ import Experience from "../Experience"
 import * as THREE from "three"
 import GUI from "lil-gui";
 import World from "../classes/World";
+import CustomToonMaterial from "./CustomToonMaterial";
 
 export default class LevitatingBody extends World {
 
@@ -10,15 +11,26 @@ export default class LevitatingBody extends World {
     private scene: THREE.Scene
     private gui: GUI
 
-    private geo!: THREE.SphereGeometry
     private gltf!: any
-    private mat!: THREE.MeshBasicMaterial
+    private mat!: CustomToonMaterial
     private mixer!: THREE.AnimationMixer
 
-
+    private directionalLight!: THREE.DirectionalLight
+    private ambientLight!: THREE.AmbientLight
 
     private holder: THREE.Object3D
 
+    private params = {
+        color: 0xffffff,
+        baseColor: 0x000000,
+        noiseColor: 0xffffff,
+        threshold: 0.7,
+        noiseDensity: 1.0,
+        lightX: 2,
+        lightY: 4,
+        lightZ: 3,
+        speed: 0.001
+    }
 
     constructor(exp: Experience) {
         super()
@@ -26,19 +38,21 @@ export default class LevitatingBody extends World {
         this.scene = exp.scene
         this.gui = this.exp.helpers.GUI
 
-
         this.holder = new THREE.Object3D()
 
         this.gltf = this.exp.ressources.items.pose_falling_2
         this.createMaterial()
         this.createScene()
         this.addScene()
-
         this.setupGUI()
     }
 
     createMaterial() {
-        this.mat = new THREE.MeshBasicMaterial({ color: 0x000000 })
+        this.mat = new CustomToonMaterial({
+            baseColor: this.params.baseColor,
+            noiseColor: this.params.noiseColor,
+            color: this.params.color
+        }, this.params.threshold)
     }
 
     createScene() {
@@ -46,17 +60,23 @@ export default class LevitatingBody extends World {
 
         poseFalling.traverse((el: THREE.Object3D) => {
             if (el instanceof THREE.SkinnedMesh) {
-                el.material = new THREE.MeshBasicMaterial({ color: 0xffffff })
+                el.material = this.mat
             }
         })
         poseFalling.position.y += 0.4
         poseFalling.scale.set(0.05, 0.05, 0.05)
         poseFalling.position.z += 3
 
-
         poseFalling.rotation.y = Math.PI / 4
         poseFalling.rotation.x = Math.PI / 4
         this.scene.add(poseFalling)
+
+        this.directionalLight = new THREE.DirectionalLight(0xffffff, 2)
+        this.directionalLight.position.set(2, 4, 3)
+        this.scene.add(this.directionalLight)
+
+        this.ambientLight = new THREE.AmbientLight(0xffffff, 0.2)
+        this.scene.add(this.ambientLight)
 
         this.mixer = new THREE.AnimationMixer(poseFalling)
         if (this.gltf.animations.length > 0) {
@@ -64,14 +84,43 @@ export default class LevitatingBody extends World {
             action.play()
         }
     }
+
     addScene() {
         this.holder.add(this.gltf)
         this.scene.add(this.holder)
     }
+
     private setupGUI() {
-        const noiseFolder = this.gui.addFolder('levitating_body')
+        const folder = this.gui.addFolder('levitating_body')
 
+        // folder.addColor(this.params, 'color')
+        //     .name('Noise Color')
+        //     .onChange((v: number) => { this.mat.uniforms.diffuse.value = new THREE.Color(v) })
 
+        folder.addColor(this.params, 'baseColor')
+            .name('Base Color')
+            .onChange((v: number) => { this.mat.uniforms.baseColor.value = new THREE.Color(v) })
+        folder.addColor(this.params, 'noiseColor')
+            .name('Noise Color')
+            .onChange((v: number) => { this.mat.uniforms.noiseColor.value = new THREE.Color(v) })
+
+        folder.add(this.params, 'threshold', 0, 1, 0.01)
+            .name('Threshold')
+            .onChange((v: number) => { this.mat.uniforms.threshold.value = v })
+
+        folder.add(this.params, 'noiseDensity', 0.0001, 1, 0.001)
+            .name('Noise Density')
+            .onChange((v: number) => { this.mat.uniforms.noiseDensity.value = v })
+
+        folder.add(this.params, 'lightX', -10, 10, 0.1)
+            .name('X')
+            .onChange((v: number) => { this.directionalLight.position.x = v })
+        folder.add(this.params, 'lightY', -10, 10, 0.1)
+            .name('Y')
+            .onChange((v: number) => { this.directionalLight.position.y = v })
+        folder.add(this.params, 'lightZ', -10, 10, 0.1)
+            .name('Z')
+            .onChange((v: number) => { this.directionalLight.position.z = v })
     }
 
     setVisible(v: boolean) {
@@ -85,10 +134,13 @@ export default class LevitatingBody extends World {
 
     update() {
         this.mixer.update(this.exp.time.delta * 0.00085)
+        this.mat.uniforms.time.value += this.exp.time.delta * this.params.speed
 
     }
 
     leave() {
+        this.scene.remove(this.directionalLight)
+        this.scene.remove(this.ambientLight)
     }
 
 }
