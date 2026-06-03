@@ -113,8 +113,10 @@ export default class Sphere extends World {
         color1: '#9ABCF6',
         color2: '#E9E2B8',
         color3: '#C8C1D1',
-        elevation: 20,
+        elevation: 100,
         elevationIntensity: 0.4,
+        grainAmount: 0.067,
+        grainDensity: 5.0,
     }
 
     constructor(exp: Experience) {
@@ -131,6 +133,8 @@ export default class Sphere extends World {
             uColor1: { value: new THREE.Color(this.params.color1) },
             uColor2: { value: new THREE.Color(this.params.color2) },
             uColor3: { value: new THREE.Color(this.params.color3) },
+            uGrainAmount: { value: this.params.grainAmount },
+            uGrainDensity: { value: this.params.grainDensity },
         }
 
         this.holder = new THREE.Object3D()
@@ -166,7 +170,9 @@ export default class Sphere extends World {
 
             ${cnoise}
 
-            
+            float exponentialIn(float t) {
+  return t == 0.0 ? t : pow(2.0, 10.0 * (t - 1.0));
+}
 
             void main()
             {
@@ -179,8 +185,8 @@ export default class Sphere extends World {
                 // fresnel = pow(fresnel, 10.0);
 
 
-                float noiseValue = cnoise(vec3(modelPosition.xz * 200000.0, uTime));
-                vec3 displaced = normalize(normal) * noiseValue * fresnel * uElevation * 0.05;
+                float noiseValue = cnoise(vec3(modelPosition.xz * 200000.0, uTime * 0.5));
+                vec3 displaced = normalize(normal) * exponentialIn(noiseValue) * fresnel * uElevation;
                  modelPosition.xyz += displaced;
 
                 vNoise = noiseValue;
@@ -194,7 +200,7 @@ export default class Sphere extends World {
 
 
 
-                float color_noise_value = cnoise(vec3(modelPosition * .5 + uTime));
+                float color_noise_value = cnoise(vec3(modelPosition * .5 + uTime *0.2));
 
                 vec3 colorLow  = mix(uColor1, uColor2, color_noise_value);
                 vec3 colorHigh = mix(uColor2, uColor3, color_noise_value);
@@ -214,6 +220,8 @@ export default class Sphere extends World {
             uniform vec3 uColor1;
             uniform vec3 uColor2;
             uniform vec3 uColor3;
+            uniform float uGrainAmount;
+            uniform float uGrainDensity;
 
             varying float vElevation;
             varying float vNoise;
@@ -221,11 +229,20 @@ export default class Sphere extends World {
             varying float vFof;
             varying vec3 vColor;
 
+            float randd(vec2 co) {
+                return fract(sin(dot(co.xy, vec2(12.9898, 78.233))) * 43758.5453);
+            }
 
             void main() {
 
                 float brightness = 1.0 + vElevation * uElevationIntensity;
                 vec3 color = clamp(vColor * brightness, 0.0, 1.0);
+
+                float resolution = 1.0 / uGrainDensity;
+                vec2 uv = gl_FragCoord.xy + uTime ;
+                vec2 lowresxy = vec2(floor(uv.x / resolution), floor(uv.y / resolution));
+                float grain = randd(lowresxy) * 2.0 - 1.0;
+                color = clamp(color + grain * uGrainAmount, 0.0, 1.0);
 
                 gl_FragColor = vec4(color, 1.0);
                 #include <colorspace_fragment>
@@ -236,6 +253,7 @@ export default class Sphere extends World {
 
     createMesh() {
         this.mesh = new THREE.Mesh(this.geo, this.mat);
+        this.mesh.layers.enable(6)
     }
     addScene() {
         this.holder.add(this.mesh)
@@ -266,6 +284,14 @@ export default class Sphere extends World {
         })
         gradientFolder.add(this.params, 'elevationIntensity', 0.0, 2.0, 0.01).name('Elevation Intensity').onChange((v: number) => {
             this.uniforms.uElevationIntensity.value = v
+        })
+
+        const grainFolder = this.gui.addFolder('Grain')
+        grainFolder.add(this.params, 'grainAmount', 0.0, 0.5, 0.001).name('Amount').onChange((v: number) => {
+            this.uniforms.uGrainAmount.value = v
+        })
+        grainFolder.add(this.params, 'grainDensity', 0.1, 5.0, 0.1).name('Density').onChange((v: number) => {
+            this.uniforms.uGrainDensity.value = v
         })
     }
 
