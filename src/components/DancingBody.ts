@@ -91,15 +91,17 @@ export default class DancingBody extends World {
     }
     declare particleUvObject: Float32Array
     private targetPositionsTexture!: THREE.DataTexture
+    private prevTargetPositionsTexture!: THREE.DataTexture
+    private prevTargetData!: Float32Array
 
     private params = {
-        particleCount: 15000,
-        size: 0.01,
-        sizeRandomness: 0.5,
-        scatter: 0.1,
-        gravity: 4.0,
-        fallRange: 2.0,
-        flowFieldFactor: 0.01,
+        particleCount: 30000,
+        size: 0.005,
+        sizeRandomness: 0.66,
+        scatter: 0.3,
+        damping: 1.9,
+        centrifugalFactor: 0,
+        flowFieldFactor: 0,
         showMesh: true,
     }
 
@@ -289,49 +291,60 @@ export default class DancingBody extends World {
             this.targetPositionsTexture.image.data[i4 + 3] = 0
         }
 
+        this.prevTargetPositionsTexture = this.gpgpu.computation.createTexture()
+        this.prevTargetPositionsTexture.image.data.set(this.targetPositionsTexture.image.data)
+        this.prevTargetData = new Float32Array(this.targetPositionsTexture.image.data.length)
+        this.prevTargetData.set(this.targetPositionsTexture.image.data)
+
         const gpgpuShader = `
 ${simplex4DNoise}
 
 uniform sampler2D uTargetPositions;
+uniform sampler2D uPrevTargetPositions;
 uniform float uDeltaTime;
-uniform float uGravity;
-uniform float uFallRange;
+uniform float uDamping;
+uniform float uCentrifugalFactor;
 uniform float uFlowFieldFactor;
+uniform vec3 uModelCenter;
 
 void main() {
     vec2 uv = gl_FragCoord.xy / resolution.xy;
     vec4 particle = texture(uParticles, uv);
-    vec4 target = texture(uTargetPositions, uv);
+    vec3 target = texture(uTargetPositions, uv).xyz;
+    vec3 prevTarget = texture(uPrevTargetPositions, uv).xyz;
+
+    vec3 boneDelta = target - prevTarget;
+    vec3 radialDir = normalize(target - uModelCenter);
+    vec3 effectiveTarget = target + radialDir * length(boneDelta) * uCentrifugalFactor;
 
     float rand = fract(sin(dot(uv, vec2(12.9898, 78.233))) * 43758.5453);
-    float resetThreshold = target.y - (0.5 + rand) * uFallRange;
+    float responseSpeed = uDamping * (0.4 + rand * 1.2);
+    float alpha = 1.0 - exp(-responseSpeed * uDeltaTime);
 
-    float velocity = particle.w - uGravity * uDeltaTime;
-    vec3 newPos = particle.xyz + vec3(0.0, velocity * uDeltaTime, 0.0);
-
-    if (newPos.y < resetThreshold) {
-        newPos = target.xyz;
-        velocity = 0.0;
-    }
+    vec3 newPos = mix(particle.xyz, effectiveTarget, alpha);
 
     vec3 flowField = vec3(
-        snoise(vec4(particle.xyz + 0.0, 0.0)),
-        snoise(vec4(particle.xyz + 1.0, 0.0)),
-        snoise(vec4(particle.xyz + 2.0, 0.0))
+        snoise(vec4(particle.xyz * 0.5 + 0.0, 0.0)),
+        snoise(vec4(particle.xyz * 0.5 + 1.0, 0.0)),
+        snoise(vec4(particle.xyz * 0.5 + 2.0, 0.0))
     );
-    newPos.xyz += normalize(flowField) * uFlowFieldFactor;
+    newPos += normalize(flowField) * uFlowFieldFactor;
 
-    gl_FragColor = vec4(newPos, velocity);
+    float distToTarget = length(target - newPos);
+
+    gl_FragColor = vec4(newPos, distToTarget);
 }
         `
 
         this.gpgpu.particlesVariable = this.gpgpu.computation.addVariable('uParticles', gpgpuShader, baseParticlesTexture)
         this.gpgpu.computation.setVariableDependencies(this.gpgpu.particlesVariable, [this.gpgpu.particlesVariable])
         this.gpgpu.particlesVariable.material.uniforms.uTargetPositions = { value: this.targetPositionsTexture }
+        this.gpgpu.particlesVariable.material.uniforms.uPrevTargetPositions = { value: this.prevTargetPositionsTexture }
         this.gpgpu.particlesVariable.material.uniforms.uDeltaTime = { value: 0 }
-        this.gpgpu.particlesVariable.material.uniforms.uGravity = { value: this.params.gravity }
-        this.gpgpu.particlesVariable.material.uniforms.uFallRange = { value: this.params.fallRange }
+        this.gpgpu.particlesVariable.material.uniforms.uDamping = { value: this.params.damping }
+        this.gpgpu.particlesVariable.material.uniforms.uCentrifugalFactor = { value: this.params.centrifugalFactor }
         this.gpgpu.particlesVariable.material.uniforms.uFlowFieldFactor = { value: this.params.flowFieldFactor }
+        this.gpgpu.particlesVariable.material.uniforms.uModelCenter = { value: this.gltf.scene.position.clone() }
 
         this.gpgpu.computation.init()
     }
@@ -388,13 +401,13 @@ void main() {
         folder.add(this.params, 'scatter', 0, 1, 0.01)
             .name('Scatter')
 
-        folder.add(this.params, 'gravity', 0, 20, 0.1)
-            .name('Gravity')
-            .onChange((v: number) => { this.gpgpu.particlesVariable.material.uniforms.uGravity.value = v })
+        folder.add(this.params, 'damping', 0.1, 30, 0.1)
+            .name('Follow Speed')
+            .onChange((v: number) => { this.gpgpu.particlesVariable.material.uniforms.uDamping.value = v })
 
-        folder.add(this.params, 'fallRange', 0.01, 10, 0.01)
-            .name('Fall Range')
-            .onChange((v: number) => { this.gpgpu.particlesVariable.material.uniforms.uFallRange.value = v })
+        folder.add(this.params, 'centrifugalFactor', 0, 20, 0.1)
+            .name('Centrifugal')
+            .onChange((v: number) => { this.gpgpu.particlesVariable.material.uniforms.uCentrifugalFactor.value = v })
 
         folder.add(this.params, 'flowFieldFactor', 0.0, 1, 0.001)
             .name('Flow Field')
@@ -414,8 +427,12 @@ void main() {
     }
 
     update() {
+        this.mixer.update(this.exp.time.delta * 0.000085)
+
         const tempPosA = new THREE.Vector3()
         const tempPosB = new THREE.Vector3()
+
+        this.prevTargetData.set(this.targetPositionsTexture.image.data)
 
         for (let i = 0; i < this.baseGeometry.count; i++) {
             const pair = this.particleBonePairs[i]
@@ -433,14 +450,16 @@ void main() {
             this.targetPositionsTexture.image.data[i4 + 3] = 0
         }
 
+        this.prevTargetPositionsTexture.image.data.set(this.prevTargetData)
+        this.prevTargetPositionsTexture.needsUpdate = true
         this.targetPositionsTexture.needsUpdate = true
+
         this.gpgpu.particlesVariable.material.uniforms.uDeltaTime.value = this.exp.time.delta / 1000
         this.gpgpu.particlesVariable.material.uniforms.uTargetPositions.value = this.targetPositionsTexture
+        this.gpgpu.particlesVariable.material.uniforms.uPrevTargetPositions.value = this.prevTargetPositionsTexture
         this.gpgpu.computation.compute()
         this.material.instance.uniforms.uParticlesTexture.value =
             this.gpgpu.computation.getCurrentRenderTarget(this.gpgpu.particlesVariable).texture
-
-        this.mixer.update(this.exp.time.delta * 0.000085)
     }
 
     setVisible(v: boolean) {
