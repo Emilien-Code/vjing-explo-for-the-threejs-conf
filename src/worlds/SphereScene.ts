@@ -17,14 +17,23 @@ export default class GlassScene extends World {
     private scene: THREE.Scene
     private gui: GUI
 
-    private sphere: Sphere;
-    private phd: ParticleHumanDancing;
+    private sphere!: Sphere;
+    private phd!: ParticleHumanDancing;
     private phdDamp!: ParticleHumanDancingDamp;
     private declare water: Water;
     private declare levitatingBody: LevitatingBody;
     private squares!: Squares;
     private dancingBody!: DancingBody;
 
+    private visibility = {
+        sphere: false,
+        phd: false,
+        phdDamp: false,
+        water: false,
+        levitatingBody: false,
+        squares: false,
+        dancingBody: false,
+    }
 
     constructor(exp: Experience) {
         super()
@@ -33,11 +42,9 @@ export default class GlassScene extends World {
         this.scene = exp.scene
         this.gui = this.exp.helpers.GUI
 
-
-        // this.sphere = new Sphere(this.exp)
-        // this.phd = new ParticleHumanDancing(this.exp)
-
-        // this.phdDamp = new ParticleHumanDancingDamp(this.exp)
+        this.sphere = new Sphere(this.exp)
+        this.phd = new ParticleHumanDancing(this.exp)
+        this.phdDamp = new ParticleHumanDancingDamp(this.exp)
 
         this.water = new Water(this.exp, {
             color: 0xffffff,
@@ -53,23 +60,41 @@ export default class GlassScene extends World {
         this.squares = new Squares(this.exp)
         this.dancingBody = new DancingBody(this.exp)
         this.setupGUI()
+        this.hideScene()
+
+    }
+
+    private hideScene() {
+        this.sphere.setVisible(false)
+        this.phd.setVisible(false)
+        this.phdDamp.setVisible(false)
+        this.water.water.visible = false
+        this.levitatingBody.setVisible(false)
+        this.squares.setVisible(false)
+        this.dancingBody.setVisible(false)
     }
 
     private setupGUI() {
-
+        const folder = this.gui.addFolder('Visibility')
+        folder.add(this.visibility, 'sphere').name('Sphere').onChange((v: boolean) => this.sphere.setVisible(v))
+        folder.add(this.visibility, 'phd').name('Particle Dancing').onChange((v: boolean) => this.phd.setVisible(v))
+        folder.add(this.visibility, 'phdDamp').name('Centrifugal Particles').onChange((v: boolean) => this.phdDamp.setVisible(v))
+        folder.add(this.visibility, 'water').name('Water').onChange((v: boolean) => { this.water.water.visible = v })
+        folder.add(this.visibility, 'levitatingBody').name('Levitating Body').onChange((v: boolean) => this.levitatingBody.setVisible(v))
+        folder.add(this.visibility, 'squares').name('Squares').onChange((v: boolean) => this.squares.setVisible(v))
+        folder.add(this.visibility, 'dancingBody').name('Dancing Body').onChange((v: boolean) => this.dancingBody.setVisible(v))
     }
 
     onBPMBeat() {
         if (!this.exp.audioManager || !this.exp.bpmManager) return
 
-
-        // this.sphere.onBPMBeat()
+        this.sphere.onBPMBeat()
     }
 
     update() {
-        // this.sphere.update()
-        // this.phd.update()
-        // this.phdDamp.update()
+        this.sphere.update()
+        this.phd.update()
+        this.phdDamp.update()
         this.water.update()
         this.levitatingBody.update()
         this.squares.update()

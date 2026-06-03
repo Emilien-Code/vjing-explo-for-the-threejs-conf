@@ -90,6 +90,10 @@ export default class Squares extends World {
         })
     }
 
+    setVisible(v: boolean) {
+        this.group.visible = v
+    }
+
     onBPMBeat() {
         if (!this.exp.audioManager || !this.exp.bpmManager) return
     }

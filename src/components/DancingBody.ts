@@ -443,5 +443,10 @@ void main() {
         this.mixer.update(this.exp.time.delta * 0.000085)
     }
 
+    setVisible(v: boolean) {
+        this.gltf.scene.visible = v
+        if (this.points) this.points.visible = v
+    }
+
     leave() { }
 }

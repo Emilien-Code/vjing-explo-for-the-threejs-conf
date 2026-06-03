@@ -74,6 +74,11 @@ export default class LevitatingBody extends World {
 
     }
 
+    setVisible(v: boolean) {
+        this.gltf.scene.visible = v
+        this.holder.visible = v
+    }
+
     onBPMBeat() {
         if (!this.exp.audioManager || !this.exp.bpmManager) return
     }

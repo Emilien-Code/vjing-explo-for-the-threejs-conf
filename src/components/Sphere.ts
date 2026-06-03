@@ -273,6 +273,10 @@ export default class Sphere extends World {
         if (!this.exp.audioManager || !this.exp.bpmManager) return
     }
 
+    setVisible(v: boolean) {
+        this.holder.visible = v
+    }
+
     update() {
         this.uniforms.uTime.value = this.exp.time.elapsedTime / 1000
     }

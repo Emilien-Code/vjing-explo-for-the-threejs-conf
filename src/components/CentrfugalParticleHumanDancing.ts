@@ -113,6 +113,7 @@ export default class ParticleHumanDancing extends World {
     private scene: THREE.Scene
     private gui: GUI
     private holder: THREE.Object3D
+    private model!: THREE.Object3D
     private points: THREE.Points | null = null
     private action: THREE.AnimationAction
     private mixer: THREE.AnimationMixer
@@ -172,6 +173,7 @@ export default class ParticleHumanDancing extends World {
 
         const gltf = this.exp.ressources.items.hiphop_dance_rig//break_dance_rig
         const model = gltf.scene
+        this.model = model
 
         model.scale.set(1, 1, 1)
         this.mixer = new THREE.AnimationMixer(model)
@@ -681,6 +683,11 @@ ${simplex4DNoise}
 
         this.gpgpu.computation.compute()
         this.material.instance.uniforms.uParticlesTexture.value = this.gpgpu.computation.getCurrentRenderTarget(this.gpgpu.particlesVariable).texture
+    }
+
+    setVisible(v: boolean) {
+        this.model.visible = v
+        this.holder.visible = v
     }
 
 
