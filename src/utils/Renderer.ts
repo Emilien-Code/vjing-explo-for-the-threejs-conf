@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import Experience from "../Experience"
+import { ThreePerf } from "three-perf"
 
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
@@ -105,6 +106,7 @@ export default class Renderer {
     private vignetteShader: THREE.ShaderMaterial
     private asciiPass: AsciiPass
     private rgbShiftPass: ShaderPass
+    private perf!: ThreePerf
 
     private colorCorrectionpowRGB_x = 2.2
     private colorCorrectionpowRGB_y = 1.51
@@ -146,6 +148,13 @@ export default class Renderer {
 
         this.setInstance();
         this.createTweaks()
+
+        this.perf = new ThreePerf({
+            anchorX: 'left',
+            anchorY: 'top',
+            domElement: document.body,
+            renderer: this.instance,
+        })
     }
 
     public setInstance(strength = 0, r = 0, t = 0): void {
@@ -330,16 +339,18 @@ export default class Renderer {
             this.params.exposure = 20
         }
         this.instance.toneMappingExposure = lerp(this.instance.toneMappingExposure, this.params.exposure, 0.01);
+        this.perf.begin()
         if (this.composer) {
             this.composer.render();
             this.selectiveBloom.update()
             this.godRaysBloom.update()
-
+            this.perf.end()
             return
         }
 
         this.instance.clear()
         this.instance.render(this.experience.scene, this.camera.instance);
+        this.perf.end()
 
 
 
