@@ -52,6 +52,11 @@ const sources = [
         path: ["/swing_dance.glb"]
     },
     {
+        name: "storm_light",
+        type: "GLTFModel",
+        path: ["/lightstrike.glb"]
+    },
+    {
         name: "sphere_color",
         type: "texture",
         path: ["/sphere_color.jpg"]

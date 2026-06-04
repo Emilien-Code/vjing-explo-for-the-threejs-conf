@@ -11,7 +11,7 @@ import LevitatingBody from "../components/LevitatingBody";
 import Squares from "../components/Squares";
 import DancingBody from "../components/DancingBody";
 import FallingBody from "../components/FallingBody";
-
+import LightStorm from "../components/LightStorm.ts";
 const SCENES = [
     { squares: true, fallingBody: true },
     { sphere: true, levitatingBody: true },
@@ -34,7 +34,7 @@ export default class GlassScene extends World {
     private dancingBody!: DancingBody;
 
     private currentSceneIndex: number = -1
-    private musicReactive: boolean = true
+    private musicReactive: boolean = false
 
     private visibility = {
         sphere: false,
@@ -72,8 +72,12 @@ export default class GlassScene extends World {
         this.fallingBody = new FallingBody(this.exp)
         this.squares = new Squares(this.exp)
         this.dancingBody = new DancingBody(this.exp)
+        new LightStorm(this.exp)
+
         this.setupGUI()
         this.hideScene()
+
+
 
     }
 
