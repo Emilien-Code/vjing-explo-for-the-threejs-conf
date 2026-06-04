@@ -1,22 +1,20 @@
 import Experience from "../Experience"
 import * as THREE from "three"
-import { SkeletonHelper } from "three"
-import GUI from "lil-gui";
-import World from "../classes/World";
-import Sphere from "../components/Sphere";
-import ParticleHumanDancing from "../components/ParticleHumanDancing";
-import ParticleHumanDancingDamp from "../components/CentrfugalParticleHumanDancing";
-import Water from "../components/Water"
-import LevitatingBody from "../components/LevitatingBody";
-import Squares from "../components/Squares";
-import DancingBody from "../components/DancingBody";
-import FallingBody from "../components/FallingBody";
-import LightStorm from "../components/LightStorm.ts";
-const SCENES = [
-    { squares: true, fallingBody: true },
-    { sphere: true, levitatingBody: true },
-    { water: true, dancingBody: true },
-] as const
+import GUI from "lil-gui"
+import World from "../classes/World"
+import SquaresFallingScene from "../scenes/SquaresFallingScene"
+import SphereLevitatingScene from "../scenes/SphereLevitatingScene"
+import WaterDancingScene from "../scenes/WaterDancingScene"
+import LightStormLevitatingScene from "../scenes/LightStormLevitatingScene"
+
+type SceneName = 'squaresFalling' | 'sphereLevitating' | 'waterDancing' | 'lightStormLevitating'
+
+const SCENE_NAMES: SceneName[] = [
+    'squaresFalling',
+    'sphereLevitating',
+    'waterDancing',
+    'lightStormLevitating',
+]
 
 export default class GlassScene extends World {
 
@@ -24,27 +22,19 @@ export default class GlassScene extends World {
     private scene: THREE.Scene
     private gui: GUI
 
-    private sphere!: Sphere;
-    private phd!: ParticleHumanDancing;
-    private phdDamp!: ParticleHumanDancingDamp;
-    private declare water: Water;
-    private declare levitatingBody: LevitatingBody;
-    private declare fallingBody: FallingBody;
-    private squares!: Squares;
-    private dancingBody!: DancingBody;
+    private squaresFalling!: SquaresFallingScene
+    private sphereLevitating!: SphereLevitatingScene
+    private waterDancing!: WaterDancingScene
+    private lightStormLevitating!: LightStormLevitatingScene
 
     private currentSceneIndex: number = -1
     private musicReactive: boolean = false
 
-    private visibility = {
-        sphere: false,
-        phd: false,
-        phdDamp: false,
-        water: false,
-        levitatingBody: false,
-        squares: false,
-        dancingBody: false,
-        fallingBody: false,
+    private visibility: Record<SceneName, boolean> = {
+        squaresFalling: false,
+        sphereLevitating: false,
+        waterDancing: false,
+        lightStormLevitating: false,
     }
 
     constructor(exp: Experience) {
@@ -54,57 +44,36 @@ export default class GlassScene extends World {
         this.scene = exp.scene
         this.gui = this.exp.helpers.GUI
 
-        this.sphere = new Sphere(this.exp)
-        this.phd = new ParticleHumanDancing(this.exp)
-        this.phdDamp = new ParticleHumanDancingDamp(this.exp)
-
-        this.water = new Water(this.exp, {
-            color: 0xffffff,
-            speed: 0.0021,
-            width: 1000,
-            height: 1000,
-        })
-
-        this.water.water.rotation.x = -1.34159265358979
-        this.water.water.position.y = -3.951592653589793
-        this.scene.add(this.water.water)
-        this.levitatingBody = new LevitatingBody(this.exp)
-        this.fallingBody = new FallingBody(this.exp)
-        this.squares = new Squares(this.exp)
-        this.dancingBody = new DancingBody(this.exp)
-        new LightStorm(this.exp)
+        this.squaresFalling = new SquaresFallingScene(exp)
+        this.sphereLevitating = new SphereLevitatingScene(exp)
+        this.waterDancing = new WaterDancingScene(exp)
+        this.lightStormLevitating = new LightStormLevitatingScene(exp)
 
         this.setupGUI()
-        this.hideScene()
-
-
-
     }
 
-    private hideScene() {
-        this.sphere.setVisible(false)
-        this.phd.setVisible(false)
-        this.phdDamp.setVisible(false)
-        this.water.water.visible = false
-        this.levitatingBody.setVisible(false)
-        this.squares.setVisible(false)
-        this.fallingBody.setVisible(false)
-        this.dancingBody.setVisible(false)
-        Object.keys(this.visibility).forEach(k => (this.visibility as any)[k] = false)
+    private getScene(name: SceneName) {
+        return {
+            squaresFalling: this.squaresFalling,
+            sphereLevitating: this.sphereLevitating,
+            waterDancing: this.waterDancing,
+            lightStormLevitating: this.lightStormLevitating,
+        }[name]
+    }
+
+    private hideAll() {
+        SCENE_NAMES.forEach(name => {
+            this.getScene(name).setVisible(false)
+            this.visibility[name] = false
+        })
     }
 
     private switchScene(index: number) {
-        this.hideScene()
+        this.hideAll()
         this.currentSceneIndex = index
-        const s = SCENES[index]
-
-        if ('sphere' in s && s.sphere) { this.sphere.setVisible(true); this.visibility.sphere = true }
-        if ('dancingBody' in s && s.dancingBody) { this.dancingBody.setVisible(true); this.visibility.dancingBody = true }
-        if ('water' in s && s.water) { this.water.water.visible = true; this.visibility.water = true }
-        if ('levitatingBody' in s && s.levitatingBody) { this.levitatingBody.setVisible(true); this.visibility.levitatingBody = true }
-        if ('squares' in s && s.squares) { this.squares.setVisible(true); this.visibility.squares = true }
-        if ('fallingBody' in s && s.fallingBody) { this.fallingBody.setVisible(true); this.visibility.fallingBody = true }
-
+        const name = SCENE_NAMES[index]
+        this.getScene(name).setVisible(true)
+        this.visibility[name] = true
         this.gui.controllersRecursive().forEach(c => c.updateDisplay())
     }
 
@@ -112,44 +81,39 @@ export default class GlassScene extends World {
         this.gui.add(this, 'musicReactive').name('Music Reactive')
 
         const folder = this.gui.addFolder('Visibility')
-        folder.add(this.visibility, 'sphere').name('Sphere').onChange((v: boolean) => { this.sphere.setVisible(v); this.sphere.showGUI(v) })
-        folder.add(this.visibility, 'phd').name('Particle Dancing').onChange((v: boolean) => { this.phd.setVisible(v); this.phd.showGUI(v) })
-        folder.add(this.visibility, 'phdDamp').name('Centrifugal Particles').onChange((v: boolean) => { this.phdDamp.setVisible(v); this.phdDamp.showGUI(v) })
-        folder.add(this.visibility, 'water').name('Water').onChange((v: boolean) => { this.water.water.visible = v })
-        folder.add(this.visibility, 'levitatingBody').name('Levitating Body').onChange((v: boolean) => { this.levitatingBody.setVisible(v); this.levitatingBody.showGUI(v) })
-        folder.add(this.visibility, 'squares').name('Squares').onChange((v: boolean) => { this.squares.setVisible(v); this.squares.showGUI(v) })
-        folder.add(this.visibility, 'dancingBody').name('Dancing Body').onChange((v: boolean) => { this.dancingBody.setVisible(v); this.dancingBody.showGUI(v) })
-        folder.add(this.visibility, 'fallingBody').name('Falling Body').onChange((v: boolean) => { this.fallingBody.setVisible(v); this.fallingBody.showGUI(v) })
+        SCENE_NAMES.forEach(name => {
+            folder.add(this.visibility, name).name(name).onChange((v: boolean) => {
+                this.getScene(name).setVisible(v)
+                this.getScene(name).showGUI(v)
+            })
+        })
     }
 
     onReady() {
-        this.squares.onReady()
+        this.squaresFalling.onReady()
     }
 
     onBPMBeat() {
         if (!this.musicReactive) return
         if (!this.exp.audioManager || !this.exp.bpmManager) return
 
-        this.sphere.onBPMBeat()
+        SCENE_NAMES.forEach(name => {
+            if (this.visibility[name]) this.getScene(name).onBPMBeat()
+        })
 
         if (Math.random() < 1 / 3) {
-            const candidates = SCENES.map((_, i) => i).filter(i => i !== this.currentSceneIndex)
+            const candidates = SCENE_NAMES.map((_, i) => i).filter(i => i !== this.currentSceneIndex)
             const next = candidates[Math.floor(Math.random() * candidates.length)]
             this.switchScene(next)
         }
     }
 
     update() {
-        this.sphere.update()
-        this.phd.update()
-        this.phdDamp.update()
-        this.water.update()
-        this.levitatingBody.update()
-        this.squares.update()
-        this.dancingBody.update()
-        this.fallingBody.update()
+        this.squaresFalling.update()
+        this.sphereLevitating.update()
+        this.waterDancing.update()
+        this.lightStormLevitating.update()
     }
 
-    leave() {
-    }
+    leave() { }
 }
