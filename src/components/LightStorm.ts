@@ -80,6 +80,9 @@ export default class LightStorm extends World {
         upSpeed: -1.25,
     }
 
+    private beatDownSpeed: number = 0
+    private beatDecay: number = 0.92
+
     constructor(exp: Experience) {
         super()
         this.exp = exp
@@ -165,11 +168,17 @@ export default class LightStorm extends World {
     }
 
     onBPMBeat() {
-        if (!this.exp.audioManager || !this.exp.bpmManager) return
+        this.beatDownSpeed = Date.now()
     }
 
     update() {
         this.mat.uniforms.time.value += this.exp.time.delta * 0.001
+
+        if (Date.now() - this.beatDownSpeed < 300) {
+            this.mat.uniforms.energyIntensity.value = 4
+        } else {
+            this.mat.uniforms.energyIntensity.value = 0
+        }
     }
 
     leave() {
