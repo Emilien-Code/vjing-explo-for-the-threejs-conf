@@ -111,9 +111,9 @@ export default class Sphere extends World {
     private guiFolder!: GUI
     private params = {
         noiseScale: 20.0,
-        color1: '#9ABCF6',
+        color1: '#424242',
         color2: '#E9E2B8',
-        color3: '#C8C1D1',
+        color3: '#e6e6e6',
         elevation: 100,
         elevationIntensity: 0.4,
         grainAmount: 0.067,
@@ -254,7 +254,7 @@ export default class Sphere extends World {
 
     createMesh() {
         this.mesh = new THREE.Mesh(this.geo, this.mat);
-        this.mesh.layers.enable(6)
+        // this.mesh.layers.enable(6)
     }
     addScene() {
         this.holder.add(this.mesh)

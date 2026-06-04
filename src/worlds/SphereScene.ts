@@ -2,6 +2,7 @@ import Experience from "../Experience"
 import * as THREE from "three"
 import GUI from "lil-gui"
 import World from "../classes/World"
+import Water from "../components/Water"
 import SquaresFallingScene from "../scenes/SquaresFallingScene"
 import SphereLevitatingScene from "../scenes/SphereLevitatingScene"
 import WaterDancingScene from "../scenes/WaterDancingScene"
@@ -21,6 +22,8 @@ export default class GlassScene extends World {
     private exp: Experience
     private scene: THREE.Scene
     private gui: GUI
+
+    private water: Water
 
     private squaresFalling!: SquaresFallingScene
     private sphereLevitating!: SphereLevitatingScene
@@ -44,10 +47,20 @@ export default class GlassScene extends World {
         this.scene = exp.scene
         this.gui = this.exp.helpers.GUI
 
+        this.water = new Water(exp, {
+            color: 0xffffff,
+            speed: 0.0021,
+            width: 1000,
+            height: 1000,
+        })
+        this.water.water.rotation.x = -1.34159265358979
+        this.water.water.position.y = 0
+        this.scene.add(this.water.water)
+
         this.squaresFalling = new SquaresFallingScene(exp)
         this.sphereLevitating = new SphereLevitatingScene(exp)
-        this.waterDancing = new WaterDancingScene(exp)
-        this.lightStormLevitating = new LightStormLevitatingScene(exp)
+        this.waterDancing = new WaterDancingScene(exp, this.water)
+        this.lightStormLevitating = new LightStormLevitatingScene(exp, this.water)
 
         this.setupGUI()
     }
@@ -109,6 +122,7 @@ export default class GlassScene extends World {
     }
 
     update() {
+        this.water.update()
         this.squaresFalling.update()
         this.sphereLevitating.update()
         this.waterDancing.update()

@@ -2,6 +2,7 @@ import Experience from "../Experience"
 import World from "../classes/World"
 import LightStorm from "../components/LightStorm"
 import LevitatingBody from "../components/LevitatingBody"
+import Water from "../components/Water"
 import GUI from "lil-gui"
 
 export default class LightStormLevitatingScene extends World {
@@ -9,11 +10,13 @@ export default class LightStormLevitatingScene extends World {
     private exp: Experience
     private lightStorm: LightStorm
     private levitatingBody: LevitatingBody
+    private water: Water
     private guiFolder!: GUI
 
-    constructor(exp: Experience) {
+    constructor(exp: Experience, water: Water) {
         super()
         this.exp = exp
+        this.water = water
         this.lightStorm = new LightStorm(exp)
         this.levitatingBody = new LevitatingBody(exp)
 
@@ -27,6 +30,7 @@ export default class LightStormLevitatingScene extends World {
     }
 
     setVisible(v: boolean) {
+        this.water.water.visible = v
         this.lightStorm.setVisible(v)
         this.levitatingBody.setVisible(v)
     }
