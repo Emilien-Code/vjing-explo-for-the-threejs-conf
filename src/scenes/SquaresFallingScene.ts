@@ -4,6 +4,11 @@ import Squares from "../components/Squares"
 import FallingBody from "../components/FallingBody"
 import GUI from "lil-gui"
 
+
+type SquaresEffect = 'kick' | 'none'
+
+const EFFECTS: SquaresEffect[] = ['kick', 'none']
+
 export default class SquaresFallingScene extends World {
 
     private exp: Experience
@@ -31,8 +36,12 @@ export default class SquaresFallingScene extends World {
     }
 
     setVisible(v: boolean) {
-        this.squares.setVisible(v)
-        this.fallingBody.setVisible(v)
+        let effect = '';
+        if (v) {
+            effect = EFFECTS[Math.floor(Math.random() * EFFECTS.length)]
+        }
+        this.squares.setVisible(v, effect)
+        this.fallingBody.setVisible(v, effect)
     }
 
     showGUI(v: boolean) {

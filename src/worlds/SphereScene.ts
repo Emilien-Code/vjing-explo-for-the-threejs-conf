@@ -107,14 +107,13 @@ export default class GlassScene extends World {
     }
 
     onBPMBeat() {
-        if (!this.musicReactive) return
         if (!this.exp.audioManager || !this.exp.bpmManager) return
 
         SCENE_NAMES.forEach(name => {
             if (this.visibility[name]) this.getScene(name).onBPMBeat()
         })
 
-        if (Math.random() < 1 / 3) {
+        if (this.musicReactive && Math.random() < 1 / 3) {
             const candidates = SCENE_NAMES.map((_, i) => i).filter(i => i !== this.currentSceneIndex)
             const next = candidates[Math.floor(Math.random() * candidates.length)]
             this.switchScene(next)

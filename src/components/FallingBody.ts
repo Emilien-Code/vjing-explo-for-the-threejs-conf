@@ -31,7 +31,8 @@ export default class FallingBody extends World {
         noiseDensity: 1.0,
         lightY: 4,
         lightOrbitSpeed: 0.01,
-        speed: 0.05
+        speed: 0.05,
+        beatEnabled: false,
     }
 
     constructor(exp: Experience) {
@@ -135,7 +136,16 @@ export default class FallingBody extends World {
         v ? this.guiFolder.show() : this.guiFolder.hide()
     }
 
-    setVisible(v: boolean) {
+    private applyEffect(effect: string) {
+        this.params.beatEnabled = effect === 'kick'
+    }
+
+
+
+    setVisible(v: boolean, effect: string) {
+        if (v) {
+            this.applyEffect(effect)
+        }
         this.gltf.scene.visible = v
         this.holder.visible = v
     }
@@ -148,7 +158,7 @@ export default class FallingBody extends World {
         this.mixer.update(this.exp.time.delta * 0.00085)
         this.mat.uniforms.time.value += this.exp.time.delta * this.params.speed
         this.gltf.scene.rotation.y += 0.0051
-        this.gltf.scene.position.z -= 0.0051
+        if (!this.params.beatEnabled) this.gltf.scene.position.z -= 0.0051
         // this.gltf.scene.rotation.x += 0.01
         // this.gltf.scene.rotation.z += 0.01
 
