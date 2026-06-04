@@ -30,18 +30,18 @@ export default class Camera {
         this.setInstance()
 
 
-        this.controls = new OrbitControls(this.instance, this.canvas)
-        this.setControls()
+        // this.controls = new OrbitControls(this.instance, this.canvas)
+        // this.setControls()
 
         this.gui = this.experience.helpers.GUI
 
         const folder = this.gui.addFolder('controls')
 
-        folder.add(this, 'enableControls',)
-            .name('enable camera controls')
-            .onFinishChange(() => {
-                this.setControls()
-            })
+        // folder.add(this, 'enableControls',)
+        //     .name('enable camera controls')
+        //     .onFinishChange(() => {
+        //         this.setControls()
+        //     })
 
     }
 
@@ -63,7 +63,7 @@ export default class Camera {
     public update() {
         if (!this.enableControls) return
 
-        this.controls.update()
+        // this.controls.update()
     }
     // setTargetPosition(p){
     //     this.targetPosition = p  

@@ -68,6 +68,7 @@ export default class FallingBody extends World {
             }
             el.layers.enable(6)
         })
+
         poseFalling.position.y += 0.4
         poseFalling.scale.set(0.05, 0.05, 0.05)
         poseFalling.position.z += 3
@@ -138,6 +139,12 @@ export default class FallingBody extends World {
 
     private applyEffect(effect: string) {
         this.params.beatEnabled = effect === 'kick'
+
+        if (effect === 'aside') {
+            this.gltf.scene.position.z = -20
+        } else {
+            this.gltf.scene.position.z = -14
+        }
     }
 
 
@@ -159,8 +166,8 @@ export default class FallingBody extends World {
         this.mat.uniforms.time.value += this.exp.time.delta * this.params.speed
         this.gltf.scene.rotation.y += 0.0051
         if (!this.params.beatEnabled) this.gltf.scene.position.z -= 0.0051
-        // this.gltf.scene.rotation.x += 0.01
-        // this.gltf.scene.rotation.z += 0.01
+
+
 
         this.lightAngle += this.params.lightOrbitSpeed
         const target = this.gltf.scene.position
