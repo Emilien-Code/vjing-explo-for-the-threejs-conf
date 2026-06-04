@@ -13,6 +13,7 @@ import { ColorCorrectionShader } from 'three/examples/jsm/shaders/ColorCorrectio
 import { RGBShiftShader } from 'three/examples/jsm/shaders/RGBShiftShader.js';
 
 
+import GUI from "lil-gui"
 import {
     godRaysBloom,
     jellyFishBloom,
@@ -107,6 +108,7 @@ export default class Renderer {
     private asciiPass: AsciiPass
     private rgbShiftPass: ShaderPass
     private perf!: ThreePerf
+    private guiFolder!: GUI
 
     private colorCorrectionpowRGB_x = 2.2
     private colorCorrectionpowRGB_y = 1.51
@@ -158,6 +160,8 @@ export default class Renderer {
     }
 
     public setInstance(strength = 0, r = 0, t = 0): void {
+        this.guiFolder = this.experience.helpers.GUI.addFolder('renderer');
+
         this.instance = new THREE.WebGLRenderer({
             canvas: this.experience.canvas,
             antialias: true,
@@ -179,17 +183,17 @@ export default class Renderer {
         this.renderScene = new RenderPass(this.experience.scene, this.experience.camera.instance/* null, new THREE.Color( 0xff00ff ), 1**/)
         this.renderScene2 = new RenderPass(this.experience.scene, this.experience.camera.instance/* null, new THREE.Color( 0xff00ff ), 1**/)
 
-        this.selectiveBloom = new SelectiveBloom(this.experience, jellyFishBloom.layer)
-        this.godRaysBloom = new SelectiveBloom(this.experience, godRaysBloom.layer, {
-            strength: 0.3,
-            radius: 1.48
-        })
+        this.selectiveBloom = new SelectiveBloom(this.experience, 3, undefined, this.guiFolder)
+        // this.godRaysBloom = new SelectiveBloom(this.experience, godRaysBloom.layer, {
+        //     strength: 0.3,
+        //     radius: 1.48
+        // })
 
-        this.bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
-        this.bloomPass.enabled = this.params.bloom
-        this.bloomPass.threshold = this.params.threshold;
-        this.bloomPass.strength = this.params.strength;
-        this.bloomPass.radius = this.params.radius;
+        // this.bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+        // this.bloomPass.enabled = this.params.bloom
+        // this.bloomPass.threshold = this.params.threshold;
+        // this.bloomPass.strength = this.params.strength;
+        // this.bloomPass.radius = this.params.radius;
 
 
         this.composer = new EffectComposer(this.instance);
@@ -199,9 +203,9 @@ export default class Renderer {
         this.composer.addPass(this.selectiveBloom.getMixPass);
         this.composer.addPass(this.selectiveBloom.getOutputPass);
 
-        this.composer.addPass(this.renderScene2)
-        this.composer.addPass(this.godRaysBloom.getMixPass);
-        this.composer.addPass(this.godRaysBloom.getOutputPass);
+        // this.composer.addPass(this.renderScene2)
+        // this.composer.addPass(this.godRaysBloom.getMixPass);
+        // this.composer.addPass(this.godRaysBloom.getOutputPass);
         // this.composer.addPass(outputPass);
         console.log('yoyoyo')
 
@@ -240,91 +244,42 @@ export default class Renderer {
     }
 
     createTweaks() {
+        const folder = this.guiFolder;
 
+        // — Tone mapping
+        folder.add(this.params, 'exposure', 0.0, 10.0).step(0.01)
+            .name('exposure')
+            .onChange((value: number) => { this.instance.toneMappingExposure = value; });
 
-        const folder = this.experience.helpers.GUI.addFolder('renderer');
+        // — Sobel
+        const sobelFolder = folder.addFolder('sobel');
+        sobelFolder.add(this.params, 'sobel').name('enabled')
+            .onChange((value: boolean) => { this.effectSobel.enabled = value; });
 
-        folder.add(this.params, 'threshold', 0.0, 10.0).onChange((value: number) => {
+        // — Vignette
+        const vignetteFolder = folder.addFolder('vignette');
+        vignetteFolder.add(this.params, 'gain', 0, 2).step(0.01).name('gain')
+            .onChange((value: number) => { this.vignetteShader.uniforms.gain.value = value; });
+        vignetteFolder.add(this.params, 'vRadius', 0, 2).step(0.01).name('radius')
+            .onChange((value: number) => { this.vignetteShader.uniforms.radius.value = value; });
+        vignetteFolder.add(this.params, 'softness', 0, 2).step(0.01).name('softness')
+            .onChange((value: number) => { this.vignetteShader.uniforms.softness.value = value; });
 
-            this.bloomPass.threshold = Number(value);
+        // — ASCII
+        const asciiFolder = folder.addFolder('ascii');
+        asciiFolder.add(this.params, 'ascii').name('enabled')
+            .onChange((value: boolean) => { this.asciiPass.enabled = value; });
+        asciiFolder.add(this.params, 'asciiCellSize', 4, 32).step(1).name('cell size')
+            .onChange((value: number) => { this.asciiPass.cellSize = value; });
 
-        });
-
-        folder.add(this.params, 'strength', 0.0, 30.0).onChange((value: number) => {
-
-            this.bloomPass.strength = Number(value);
-
-        });
-
-        folder.add(this.params, 'radius', 0.0, 10.0).step(0.01).onChange((value: number) => {
-
-            this.bloomPass.radius = Number(value);
-
-        });
-        folder.add(this.params, 'exposure', 0.0, 10.0).step(0.01).onChange((value: number) => {
-            this.instance.toneMappingExposure = value;
-        });
-        folder.add(this.params, 'bloom').step(0.01).onChange((value: boolean) => {
-            //this.instance.toneMappingExposure = value;
-            this.bloomPass.enabled = value
-            // this.setInstance()
-        });
-        folder.add(this.params, 'sobel').step(0.01).onChange((value: boolean) => {
-            // this.instance.sobel = value;
-            this.effectSobel.enabled = value
-            // this.setInstance()
-        });
-        folder.add(this.params, 'gain', 0, 2).step(0.01).onChange((value: number) => {
-            this.vignetteShader.uniforms.gain.value = value
-        });
-        folder.add(this.params, 'vRadius', 0, 2).step(0.01).onChange((value: number) => {
-            this.vignetteShader.uniforms.radius.value = value
-
-        });
-        folder.add(this.params, 'softness', 0, 2).step(0.01).onChange((value: number) => {
-            this.vignetteShader.uniforms.softness.value = value
-        });
-
-        folder.add(this.params, 'ascii').onChange((value: boolean) => {
-            this.asciiPass.enabled = value;
-        });
-        folder.add(this.params, 'asciiCellSize', 4, 32).step(1).onChange((value: number) => {
-            this.asciiPass.cellSize = value;
-        });
-
-        folder.add(this.params, 'rgbShift').onChange((value: boolean) => {
-            this.rgbShiftPass.enabled = value;
-        });
-        folder.add(this.params, 'rgbShiftAmount', 0.0, 0.05).step(0.001).onChange((value: number) => {
-            this.rgbShiftPass.uniforms['amount'].value = value;
-        });
-        folder.add(this.params, 'rgbShiftAngle', 0.0, Math.PI * 2).step(0.01).onChange((value: number) => {
-            this.rgbShiftPass.uniforms['angle'].value = value;
-        });
-
-
-
-        // folder.add(this.params, 'tDiffuse', 0, 10, 0.1)
-        //     .onChange((value: number) => {
-
-        //         this.vibrantShader.uniforms.tDiffuse.value
-        //         this.setInstance()
-        //     });
-        // folder.add(this.params, 'satGreen', 0, 10, 0.1)
-        //     .onChange((value: number) => {
-
-        //         this.vibrantShader.uniforms.satGreen.value
-        //         this.setInstance()
-        //     });
-        // folder.add(this.params, 'satOrange', 0, 10, 0.1)
-        //     .onChange((value: number) => {
-
-        //         this.vibrantShader.uniforms.satOrange.value
-        //         this.setInstance()
-        //     });
-
-        // folder.close()
-
+        // — RGB shift
+        const rgbFolder = folder.addFolder('rgb shift');
+        rgbFolder.add(this.params, 'rgbShift').name('enabled')
+            .onChange((value: boolean) => { this.rgbShiftPass.enabled = value; });
+        rgbFolder.add(this.params, 'rgbShiftAmount', 0.0, 0.05).step(0.001).name('amount')
+            .onChange((value: number) => { this.rgbShiftPass.uniforms['amount'].value = value; });
+        rgbFolder.add(this.params, 'rgbShiftAngle', 0.0, Math.PI * 2).step(0.01).name('angle')
+            .onChange((value: number) => { this.rgbShiftPass.uniforms['angle'].value = value; });
     }
 
 
@@ -343,7 +298,7 @@ export default class Renderer {
         if (this.composer) {
             this.composer.render();
             this.selectiveBloom.update()
-            this.godRaysBloom.update()
+            // this.godRaysBloom.update()
             this.perf.end()
             return
         }
