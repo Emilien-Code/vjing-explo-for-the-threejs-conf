@@ -54,18 +54,19 @@ export default class Clouds {
     private geometry: THREE.PlaneGeometry | null = null
     private mesh: THREE.InstancedMesh | null = null
     private dummy: THREE.Object3D | null = null
+    private visible: boolean = true
 
     private guiFolder!: GUI
 
     private cloudParams: cloudParamsType = {
-            scaleFactor: 10,
-            clouds: 5000,
-            yAmplitude: 20,
-            cloudOpacity: 0.2,
-            x: 0,
-            y: 0,
-            z: 0,
-        }
+        scaleFactor: 10,
+        clouds: 5000,
+        yAmplitude: 20,
+        cloudOpacity: 0.025,
+        x: 0,
+        y: 0,
+        z: -100,
+    }
 
     constructor(
         experience: Experience,
@@ -225,7 +226,9 @@ export default class Clouds {
         towerFolder.close()
     }
     setVisible(v: boolean) {
+        this.visible = v
         this.mesh && (this.mesh.visible = v)
+        this.mesh && (this.mesh.material.opacity = v ? this.cloudParams.cloudOpacity : 0)
     }
 
     showGUI(v: boolean) {
@@ -234,9 +237,17 @@ export default class Clouds {
 
     update() {
         if (!this.experience.camera.instance) return
+        if (!this.mesh) return
+
+        this.mesh.position.x += Math.sin(this.experience.time.elapsedTime * 0.00005) * 0.001
+        this.mesh.position.y += Math.cos(this.experience.time.elapsedTime * 0.00005) * 0.01
+        // this.mesh.position.z += Math.cos(this.experience.time.elapsedTime * 0.00005) * 0.01
     }
     addScene() {
-        this.mesh && this.experience.scene.add(this.mesh)
+        if (!this.mesh) return
+        this.mesh.visible = this.visible
+        this.experience.scene.add(this.mesh)
+        this.mesh.position.z = this.cloudParams.z
     }
     setPosition(x: number, y: number, z: number) {
         if (!this.mesh) return
