@@ -24,9 +24,11 @@ export interface PostProcessingPreset {
     sobel: boolean
     ascii: boolean
     rgbShift: boolean
+    bloom: boolean
     asciiCellSize?: number
     rgbShiftAmount?: number
     rgbShiftAngle?: number
+    bloomValue?: number
 }
 
 const lerp = (t, i, e) => t * (1 - e) + i * e
@@ -360,6 +362,11 @@ export default class Renderer {
             this.rgbShiftPass.uniforms['angle'].value = preset.rgbShiftAngle
         }
 
+
+        this.params.bloom = preset.bloom
+        if (preset.bloom && preset.bloomValue) {
+            this.selectiveBloom.params.strength = preset.bloomValue
+        }
         this.guiFolder.controllersRecursive().forEach(c => c.updateDisplay())
     }
 

@@ -15,20 +15,39 @@ const SCENE_NAMES: SceneName[] = [
     'squaresFalling',
     'sphereLevitating',
     'waterDancing',
-    'lightStormLevitating',
+    // 'lightStormLevitating',
 ]
 
-const SCENE_PRESETS: Record<SceneName, PostProcessingPreset[]> = {
-    squaresFalling: [
-        { sobel: true, ascii: true, asciiCellSize: 4, rgbShift: false },
-        { sobel: false, ascii: false, asciiCellSize: 4, rgbShift: false },
-    ],
-    sphereLevitating: [
-    ],
-    waterDancing: [
-    ],
-    lightStormLevitating: [
-    ],
+const NO_EFFECT: PostProcessingPreset = { sobel: false, ascii: false, asciiCellSize: 4, rgbShift: false, bloom: false }
+
+type ScenePostProcessingConfig = {
+    constant: PostProcessingPreset
+    glitches: PostProcessingPreset[]
+}
+
+const SCENE_POST_PROCESSING: Record<SceneName, ScenePostProcessingConfig> = {
+    squaresFalling: {
+        constant: NO_EFFECT,
+        glitches: [
+            { sobel: true, ascii: true, asciiCellSize: 4, rgbShift: false, bloom: true },
+        ],
+    },
+    sphereLevitating: {
+        constant: NO_EFFECT,
+        glitches: [],
+    },
+    waterDancing: {
+        constant: { sobel: false, ascii: true, asciiCellSize: 4, rgbShift: false, bloom: false },
+        glitches: [
+            { sobel: true, ascii: true, asciiCellSize: 4, rgbShift: false, bloom: false },
+            { sobel: false, ascii: true, asciiCellSize: 4, rgbShift: false, bloom: true, bloomValue: 0.7 },
+            NO_EFFECT
+        ],
+    },
+    lightStormLevitating: {
+        constant: NO_EFFECT,
+        glitches: [],
+    },
 }
 
 export default class GlassScene extends World {
@@ -77,7 +96,7 @@ export default class GlassScene extends World {
         this.squaresFalling = new SquaresFallingScene(exp)
         this.sphereLevitating = new SphereLevitatingScene(exp)
         this.waterDancing = new WaterDancingScene(exp, this.water)
-        this.lightStormLevitating = new LightStormLevitatingScene(exp, this.water)
+        // this.lightStormLevitating = new LightStormLevitatingScene(exp, this.water)
 
         this.setupGUI()
     }
@@ -87,7 +106,7 @@ export default class GlassScene extends World {
             squaresFalling: this.squaresFalling,
             sphereLevitating: this.sphereLevitating,
             waterDancing: this.waterDancing,
-            lightStormLevitating: this.lightStormLevitating,
+            // lightStormLevitating: this.lightStormLevitating,
         }[name]
     }
 
@@ -107,28 +126,30 @@ export default class GlassScene extends World {
         this.getScene(name).setVisible(true)
         this.visibility[name] = true
 
-        const presets = SCENE_PRESETS[name]
-        const preset = presets[Math.floor(Math.random() * presets.length)]
-        // this.exp.renderer.applyPostProcessingPreset(preset)
+        this.exp.renderer.applyPostProcessingPreset(SCENE_POST_PROCESSING[name].constant)
+        this.gui.controllersRecursive().forEach(c => c.updateDisplay())
+    }
 
-        const maxDelay = 200;
-        const minDelay = 0;
-        const delay = Math.max(minDelay, Math.random() * maxDelay);
+    private triggerGlitch() {
+        if (this.currentSceneIndex < 0) return
+        const name = SCENE_NAMES[this.currentSceneIndex]
+        const config = SCENE_POST_PROCESSING[name]
+        if (config.glitches.length === 0) return
 
-        const maxDuration = 1000;
-        const minDuration = 100;
-        const duration = Math.max(minDuration, Math.random() * maxDuration);
+        clearTimeout(this.timeoutDurationId)
+        clearTimeout(this.timeoutDelayId)
 
+        const glitch = config.glitches[Math.floor(Math.random() * config.glitches.length)]
+        const delay = Math.random() * 200
+        const duration = Math.max(100, Math.random() * 1000)
 
         this.timeoutDelayId = setTimeout(() => {
-            this.exp.renderer.applyPostProcessingPreset(preset)
+            this.exp.renderer.applyPostProcessingPreset(glitch)
         }, delay)
 
         this.timeoutDurationId = setTimeout(() => {
-            this.exp.renderer.applyPostProcessingPreset({ sobel: false, ascii: false, asciiCellSize: 4, rgbShift: false })
-        }, duration + delay)
-
-        this.gui.controllersRecursive().forEach(c => c.updateDisplay())
+            this.exp.renderer.applyPostProcessingPreset(config.constant)
+        }, delay + duration)
     }
 
     private setupGUI() {
@@ -148,12 +169,15 @@ export default class GlassScene extends World {
 
     onBPMBeat() {
         if (!this.exp.audioManager || !this.exp.bpmManager) return
+        if (!this.musicReactive) return
 
         SCENE_NAMES.forEach(name => {
             if (this.visibility[name]) this.getScene(name).onBPMBeat()
         })
 
-        if (this.musicReactive && Math.random() < 1 / 3) {
+        if (Math.random() < 0.5) this.triggerGlitch()
+
+        if (Math.random() < 1 / 3) {
             const candidates = SCENE_NAMES.map((_, i) => i).filter(i => i !== this.currentSceneIndex)
             const next = candidates[Math.floor(Math.random() * candidates.length)]
             this.switchScene(next)
@@ -165,7 +189,7 @@ export default class GlassScene extends World {
         this.squaresFalling.update()
         this.sphereLevitating.update()
         this.waterDancing.update()
-        this.lightStormLevitating.update()
+        // this.lightStormLevitating.update()
     }
 
     leave() { }

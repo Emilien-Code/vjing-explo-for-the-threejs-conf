@@ -25,7 +25,7 @@ export default class SelectiveBloom {
     private renderScene: RenderPass;
     private outputPass: OutputPass;
     private rendererExposure: number
-    private params = {
+    public params = {
         threshold: 0,
         strength: 0.7,
         radius: 0.5,
