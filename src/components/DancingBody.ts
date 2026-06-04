@@ -105,7 +105,7 @@ export default class DancingBody extends World {
         centrifugalFactor: 0,
         flowFieldFactor: 0,
         showMesh: true,
-        bodyLight: true,
+        bodyLight: false,
         lightColor: new THREE.Color(0xffffff),
         darkColor: new THREE.Color(0x000000),
     }
