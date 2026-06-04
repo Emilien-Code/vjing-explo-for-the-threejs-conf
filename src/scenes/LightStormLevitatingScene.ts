@@ -20,6 +20,12 @@ export default class LightStormLevitatingScene extends World {
         this.lightStorm = new LightStorm(exp)
         this.levitatingBody = new LevitatingBody(exp)
 
+
+
+
+
+
+
         this.setupGUI()
         this.setVisible(false)
     }
@@ -33,6 +39,26 @@ export default class LightStormLevitatingScene extends World {
         this.water.water.visible = v
         this.lightStorm.setVisible(v)
         this.levitatingBody.setVisible(v)
+
+
+        if (Math.random() > 0.5) {
+            console.log('if')
+            this.levitatingBody.gltf.scene.position.x = 0
+            this.levitatingBody.gltf.scene.position.y = 0
+            this.levitatingBody.gltf.scene.position.z = 0
+
+            this.levitatingBody.gltf.scene.rotation.y = Math.PI / 4
+            this.levitatingBody.gltf.scene.rotation.x = Math.PI / 4
+        } else {
+            console.log('else')
+            this.levitatingBody.gltf.scene.position.x = -0.6
+            this.levitatingBody.gltf.scene.position.y = 0.4
+            this.levitatingBody.gltf.scene.position.z = 0
+
+            this.levitatingBody.gltf.scene.rotation.y = 0
+            this.levitatingBody.gltf.scene.rotation.x = 0
+        }
+
     }
 
     showGUI(v: boolean) {

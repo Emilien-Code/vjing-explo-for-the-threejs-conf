@@ -11,7 +11,7 @@ export default class LevitatingBody extends World {
     private scene: THREE.Scene
     private gui: GUI
 
-    private gltf!: any
+    public gltf!: any
     private mat!: CustomToonMaterial
     private mixer!: THREE.AnimationMixer
 

@@ -42,7 +42,7 @@ export default class LevitatingBody extends World {
 
 
         this.gltf = this.exp.ressources.items.storm_light
-        console.log("----")
+
         this.createMaterial()
         this.createScene()
         this.addScene()
@@ -51,17 +51,17 @@ export default class LevitatingBody extends World {
 
     createMaterial() {
         this.mat = new THREE.MeshBasicMaterial({
-            color: 0xff0000
+            color: 0xffffff
         })
     }
 
     createScene() {
         const poseFalling = this.gltf.scene
 
-        console.log('test : ', poseFalling)
         poseFalling.traverse((el: THREE.Object3D) => {
             if (el.isMesh) {
                 el.material = this.mat
+                el.layers.enable(6)
             }
             el.layers.enable(6)
         })
