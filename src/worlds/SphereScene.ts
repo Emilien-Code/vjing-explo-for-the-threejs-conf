@@ -12,6 +12,12 @@ import Squares from "../components/Squares";
 import DancingBody from "../components/DancingBody";
 import FallingBody from "../components/FallingBody";
 
+const SCENES = [
+    { squares: true, fallingBody: true },
+    { sphere: true, levitatingBody: true },
+    { water: true, dancingBody: true },
+] as const
+
 export default class GlassScene extends World {
 
     private exp: Experience
@@ -26,6 +32,9 @@ export default class GlassScene extends World {
     private declare fallingBody: FallingBody;
     private squares!: Squares;
     private dancingBody!: DancingBody;
+
+    private currentSceneIndex: number = -1
+    private musicReactive: boolean = true
 
     private visibility = {
         sphere: false,
@@ -77,9 +86,27 @@ export default class GlassScene extends World {
         this.squares.setVisible(false)
         this.fallingBody.setVisible(false)
         this.dancingBody.setVisible(false)
+        Object.keys(this.visibility).forEach(k => (this.visibility as any)[k] = false)
+    }
+
+    private switchScene(index: number) {
+        this.hideScene()
+        this.currentSceneIndex = index
+        const s = SCENES[index]
+
+        if ('sphere' in s && s.sphere) { this.sphere.setVisible(true); this.visibility.sphere = true }
+        if ('dancingBody' in s && s.dancingBody) { this.dancingBody.setVisible(true); this.visibility.dancingBody = true }
+        if ('water' in s && s.water) { this.water.water.visible = true; this.visibility.water = true }
+        if ('levitatingBody' in s && s.levitatingBody) { this.levitatingBody.setVisible(true); this.visibility.levitatingBody = true }
+        if ('squares' in s && s.squares) { this.squares.setVisible(true); this.visibility.squares = true }
+        if ('fallingBody' in s && s.fallingBody) { this.fallingBody.setVisible(true); this.visibility.fallingBody = true }
+
+        this.gui.controllersRecursive().forEach(c => c.updateDisplay())
     }
 
     private setupGUI() {
+        this.gui.add(this, 'musicReactive').name('Music Reactive')
+
         const folder = this.gui.addFolder('Visibility')
         folder.add(this.visibility, 'sphere').name('Sphere').onChange((v: boolean) => { this.sphere.setVisible(v); this.sphere.showGUI(v) })
         folder.add(this.visibility, 'phd').name('Particle Dancing').onChange((v: boolean) => { this.phd.setVisible(v); this.phd.showGUI(v) })
@@ -96,9 +123,16 @@ export default class GlassScene extends World {
     }
 
     onBPMBeat() {
+        if (!this.musicReactive) return
         if (!this.exp.audioManager || !this.exp.bpmManager) return
 
         this.sphere.onBPMBeat()
+
+        if (Math.random() < 1 / 3) {
+            const candidates = SCENES.map((_, i) => i).filter(i => i !== this.currentSceneIndex)
+            const next = candidates[Math.floor(Math.random() * candidates.length)]
+            this.switchScene(next)
+        }
     }
 
     update() {
