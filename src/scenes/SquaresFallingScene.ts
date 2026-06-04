@@ -51,9 +51,7 @@ export default class SquaresFallingScene extends World {
                 this.exp.camera.instance.rotation.y = -0.13
                 this.exp.camera.instance.rotation.z = 0.01
 
-
             } else {
-
 
                 this.exp.camera.instance.rotation.x = 0
                 this.exp.camera.instance.rotation.y = 0
