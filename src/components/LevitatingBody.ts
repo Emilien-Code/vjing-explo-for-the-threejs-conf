@@ -115,13 +115,13 @@ export default class LevitatingBody extends World {
             .name('Noise Density')
             .onChange((v: number) => { this.mat.uniforms.noiseDensity.value = v })
 
-        folder.add(this.params, 'lightX', -10, 10, 0.1)
+        folder.add(this.params, 'lightX', -100, 100, 0.1)
             .name('X')
             .onChange((v: number) => { this.directionalLight.position.x = v })
-        folder.add(this.params, 'lightY', -10, 10, 0.1)
+        folder.add(this.params, 'lightY', -100, 100, 0.1)
             .name('Y')
             .onChange((v: number) => { this.directionalLight.position.y = v })
-        folder.add(this.params, 'lightZ', -10, 10, 0.1)
+        folder.add(this.params, 'lightZ', -100, 100, 0.1)
             .name('Z')
             .onChange((v: number) => { this.directionalLight.position.z = v })
 

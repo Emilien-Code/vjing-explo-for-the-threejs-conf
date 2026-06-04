@@ -94,6 +94,8 @@ export default class DancingBody extends World {
     private prevTargetPositionsTexture!: THREE.DataTexture
     private prevTargetData!: Float32Array
 
+    public get modelPosition(): THREE.Vector3 { return this.gltf.scene.position }
+
     private bodyMaterial: THREE.MeshBasicMaterial
     private guiFolder!: GUI
     private params = {
@@ -136,7 +138,7 @@ export default class DancingBody extends World {
     private setupModel() {
         const model = this.gltf.scene
 
-        model.position.y += 0.4
+        // model.position.y += 0.4
         model.scale.set(0.05, 0.05, 0.05)
         model.position.z += 3
         model.rotation.y = Math.PI / 4
