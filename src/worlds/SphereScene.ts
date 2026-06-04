@@ -15,7 +15,7 @@ const SCENE_NAMES: SceneName[] = [
     'squaresFalling',
     'sphereLevitating',
     'waterDancing',
-    // 'lightStormLevitating',
+    'lightStormLevitating',
 ]
 
 const NO_EFFECT: PostProcessingPreset = { sobel: false, ascii: false, asciiCellSize: 4, rgbShift: false, bloom: false }
@@ -46,7 +46,10 @@ const SCENE_POST_PROCESSING: Record<SceneName, ScenePostProcessingConfig> = {
     },
     lightStormLevitating: {
         constant: NO_EFFECT,
-        glitches: [],
+        glitches: [
+            { sobel: true, ascii: true, asciiCellSize: 4, rgbShift: false, bloom: false },
+            { sobel: false, ascii: true, asciiCellSize: 4, rgbShift: false, bloom: false },
+        ],
     },
 }
 
@@ -96,7 +99,7 @@ export default class GlassScene extends World {
         this.squaresFalling = new SquaresFallingScene(exp)
         this.sphereLevitating = new SphereLevitatingScene(exp)
         this.waterDancing = new WaterDancingScene(exp, this.water)
-        // this.lightStormLevitating = new LightStormLevitatingScene(exp, this.water)
+        this.lightStormLevitating = new LightStormLevitatingScene(exp, this.water)
 
         this.setupGUI()
     }
@@ -106,7 +109,7 @@ export default class GlassScene extends World {
             squaresFalling: this.squaresFalling,
             sphereLevitating: this.sphereLevitating,
             waterDancing: this.waterDancing,
-            // lightStormLevitating: this.lightStormLevitating,
+            lightStormLevitating: this.lightStormLevitating,
         }[name]
     }
 
@@ -189,7 +192,7 @@ export default class GlassScene extends World {
         this.squaresFalling.update()
         this.sphereLevitating.update()
         this.waterDancing.update()
-        // this.lightStormLevitating.update()
+        this.lightStormLevitating.update()
     }
 
     leave() { }
