@@ -30,6 +30,7 @@ export default class Squares extends World {
         radius: 2,
         boxSize: 0.4,
         groupRotationSpeed: 0.3,
+        groupRotationBoostAmount: 5,
         selfRotationSpeed: 1.2,
         color: 0xffffff,//0x4690D2,
         baseColor: 0x121212,
@@ -48,6 +49,7 @@ export default class Squares extends World {
     private beatPhase: number = 0
     private beatCounter: number = 0
     private accumulatedDistance: number = 0
+    private accumulatedRotation: number = 0
 
     constructor(exp: Experience) {
         super()
@@ -148,6 +150,7 @@ export default class Squares extends World {
         folder.add(this.params, 'tunnelLength', 5, 200, 1).name('Tunnel Length')
         folder.add(this.params, 'forwardSpeed', 0, 30, 0.1).name('Forward Speed')
         folder.add(this.params, 'groupRotationSpeed', 0, 5, 0.01).name('Group Rotation')
+        folder.add(this.params, 'groupRotationBoostAmount', 0, 50, 0.1).name('Rotation Boost')
 
         const beatFolder = folder.addFolder('Beat')
         beatFolder.add(this.params, 'beatEnabled').name('Enabled')
@@ -227,6 +230,15 @@ export default class Squares extends World {
         }
     }
 
+    private updateGroupRotation(delta: number) {
+        const easeOutCirc = (x: number) => Math.sqrt(1 - Math.pow(x - 1, 2))
+        const rotBoost = this.params.beatEnabled && this.beatPhase > 0
+            ? this.params.groupRotationBoostAmount * (1 - easeOutCirc(1 - this.beatPhase))
+            : 0
+        this.accumulatedRotation += (this.params.groupRotationSpeed + rotBoost) * delta
+        this.group.rotation.z = this.accumulatedRotation
+    }
+
     private updateBoxRotations(t: number) {
         for (const box of this.boxes) {
             const o = box.userData.rotOffset
@@ -243,7 +255,7 @@ export default class Squares extends World {
         this.updateMaterial(delta)
         this.updateTunnelSpeed(delta)
         this.updateRings()
-        this.group.rotation.z = t * this.params.groupRotationSpeed
+        this.updateGroupRotation(delta)
         this.updateBoxRotations(t)
     }
 
