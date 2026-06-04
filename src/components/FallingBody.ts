@@ -148,6 +148,7 @@ export default class FallingBody extends World {
         this.mixer.update(this.exp.time.delta * 0.00085)
         this.mat.uniforms.time.value += this.exp.time.delta * this.params.speed
         this.gltf.scene.rotation.y += 0.0051
+        this.gltf.scene.position.z -= 0.0051
         // this.gltf.scene.rotation.x += 0.01
         // this.gltf.scene.rotation.z += 0.01
 
