@@ -54,10 +54,10 @@ export default class Squares extends World {
         this.clouds = new Clouds(this.exp, {
             x: 0,
             y: 0,
-            z: -200,
+            z: -100,
             clouds: 800,
             yAmplitude: 8,
-            cloudOpacity: 0.05,
+            cloudOpacity: 0.025,
             blending: THREE.AdditiveBlending,
             scaleAspect: 5,
             spreadX: 6,
@@ -178,7 +178,7 @@ export default class Squares extends World {
 
     update() {
         this.mat.uniforms.time.value += this.exp.time.delta * this.params.speed
-
+        this.clouds.update()
         const t = this.exp.time.elapsedTime / 1000
 
         this.group.rotation.z = t * this.params.groupRotationSpeed
