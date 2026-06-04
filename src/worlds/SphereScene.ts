@@ -7,6 +7,7 @@ import SquaresFallingScene from "../scenes/SquaresFallingScene"
 import SphereLevitatingScene from "../scenes/SphereLevitatingScene"
 import WaterDancingScene from "../scenes/WaterDancingScene"
 import LightStormLevitatingScene from "../scenes/LightStormLevitatingScene"
+import type { PostProcessingPreset } from "../utils/Renderer"
 
 type SceneName = 'squaresFalling' | 'sphereLevitating' | 'waterDancing' | 'lightStormLevitating'
 
@@ -16,6 +17,19 @@ const SCENE_NAMES: SceneName[] = [
     'waterDancing',
     'lightStormLevitating',
 ]
+
+const SCENE_PRESETS: Record<SceneName, PostProcessingPreset[]> = {
+    squaresFalling: [
+        { sobel: true, ascii: true, asciiCellSize: 4, rgbShift: false },
+        { sobel: false, ascii: false, asciiCellSize: 4, rgbShift: false },
+    ],
+    sphereLevitating: [
+    ],
+    waterDancing: [
+    ],
+    lightStormLevitating: [
+    ],
+}
 
 export default class GlassScene extends World {
 
@@ -29,6 +43,9 @@ export default class GlassScene extends World {
     private sphereLevitating!: SphereLevitatingScene
     private waterDancing!: WaterDancingScene
     private lightStormLevitating!: LightStormLevitatingScene
+
+    private timeoutDurationId: number = -1
+    private timeoutDelayId: number = -1
 
     private currentSceneIndex: number = -1
     private musicReactive: boolean = false
@@ -82,11 +99,35 @@ export default class GlassScene extends World {
     }
 
     private switchScene(index: number) {
+        clearTimeout(this.timeoutDurationId)
+        clearTimeout(this.timeoutDelayId)
         this.hideAll()
         this.currentSceneIndex = index
         const name = SCENE_NAMES[index]
         this.getScene(name).setVisible(true)
         this.visibility[name] = true
+
+        const presets = SCENE_PRESETS[name]
+        const preset = presets[Math.floor(Math.random() * presets.length)]
+        // this.exp.renderer.applyPostProcessingPreset(preset)
+
+        const maxDelay = 200;
+        const minDelay = 0;
+        const delay = Math.max(minDelay, Math.random() * maxDelay);
+
+        const maxDuration = 1000;
+        const minDuration = 100;
+        const duration = Math.max(minDuration, Math.random() * maxDuration);
+
+
+        this.timeoutDelayId = setTimeout(() => {
+            this.exp.renderer.applyPostProcessingPreset(preset)
+        }, delay)
+
+        this.timeoutDurationId = setTimeout(() => {
+            this.exp.renderer.applyPostProcessingPreset({ sobel: false, ascii: false, asciiCellSize: 4, rgbShift: false })
+        }, duration + delay)
+
         this.gui.controllersRecursive().forEach(c => c.updateDisplay())
     }
 
@@ -96,8 +137,7 @@ export default class GlassScene extends World {
         const folder = this.gui.addFolder('Visibility')
         SCENE_NAMES.forEach(name => {
             folder.add(this.visibility, name).name(name).onChange((v: boolean) => {
-                this.getScene(name).setVisible(v)
-                this.getScene(name).showGUI(v)
+                this.switchScene(SCENE_NAMES.findIndex(n => n == name))
             })
         })
     }

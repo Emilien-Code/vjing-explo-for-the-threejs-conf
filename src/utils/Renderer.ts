@@ -20,6 +20,15 @@ import {
     rendererPalette
 } from "../common/colors"
 
+export interface PostProcessingPreset {
+    sobel: boolean
+    ascii: boolean
+    rgbShift: boolean
+    asciiCellSize?: number
+    rgbShiftAmount?: number
+    rgbShiftAngle?: number
+}
+
 const lerp = (t, i, e) => t * (1 - e) + i * e
 
 
@@ -327,6 +336,31 @@ export default class Renderer {
         // this.instance.render()
 
 
+    }
+
+    public applyPostProcessingPreset(preset: PostProcessingPreset): void {
+        this.params.sobel = preset.sobel
+        this.effectSobel.enabled = preset.sobel
+
+        this.params.ascii = preset.ascii
+        this.asciiPass.enabled = preset.ascii
+        if (preset.asciiCellSize !== undefined) {
+            this.params.asciiCellSize = preset.asciiCellSize
+            this.asciiPass.cellSize = preset.asciiCellSize
+        }
+
+        this.params.rgbShift = preset.rgbShift
+        this.rgbShiftPass.enabled = preset.rgbShift
+        if (preset.rgbShiftAmount !== undefined) {
+            this.params.rgbShiftAmount = preset.rgbShiftAmount
+            this.rgbShiftPass.uniforms['amount'].value = preset.rgbShiftAmount
+        }
+        if (preset.rgbShiftAngle !== undefined) {
+            this.params.rgbShiftAngle = preset.rgbShiftAngle
+            this.rgbShiftPass.uniforms['angle'].value = preset.rgbShiftAngle
+        }
+
+        this.guiFolder.controllersRecursive().forEach(c => c.updateDisplay())
     }
 
     public resize(): void {
