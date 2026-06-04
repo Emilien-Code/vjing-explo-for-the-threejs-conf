@@ -114,11 +114,16 @@ export default class Sphere extends World {
         color1: '#424242',
         color2: '#E9E2B8',
         color3: '#e6e6e6',
-        elevation: 100,
+        elevation: 0,
         elevationIntensity: 0.4,
         grainAmount: 0.067,
         grainDensity: 5.0,
+        beatBoostAmount: 59,
+        beatDuration: 1.26,
     }
+
+    private beatPhase: number = 0
+    private beatCounter: number = 0
 
     constructor(exp: Experience) {
         super()
@@ -294,6 +299,10 @@ export default class Sphere extends World {
             this.uniforms.uGrainDensity.value = v
         })
 
+        const beatFolder = this.guiFolder.addFolder('Beat')
+        beatFolder.add(this.params, 'beatBoostAmount', 0, 500, 1).name('Boost Amount')
+        beatFolder.add(this.params, 'beatDuration', 0.05, 2, 0.01).name('Duration')
+
         this.guiFolder.hide()
     }
 
@@ -302,7 +311,8 @@ export default class Sphere extends World {
     }
 
     onBPMBeat() {
-        if (!this.exp.audioManager || !this.exp.bpmManager) return
+        this.beatCounter++
+        if (this.beatCounter % 2 === 0) this.beatPhase = 1.0
     }
 
     setVisible(v: boolean) {
@@ -311,6 +321,16 @@ export default class Sphere extends World {
 
     update() {
         this.uniforms.uTime.value = this.exp.time.elapsedTime / 1000
+
+        const delta = this.exp.time.delta / 1000
+        if (this.beatPhase > 0) {
+            this.beatPhase = Math.max(0, this.beatPhase - delta / this.params.beatDuration)
+        }
+        const easeOutCirc = (x: number) => Math.sqrt(1 - Math.pow(x - 1, 2))
+        const boost = this.beatPhase > 0
+            ? this.params.beatBoostAmount * (1 - easeOutCirc(1 - this.beatPhase))
+            : 0
+        this.uniforms.uElevation.value = this.params.elevation + boost
     }
 
     leave() {
