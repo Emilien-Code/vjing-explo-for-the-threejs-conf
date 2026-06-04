@@ -3,11 +3,6 @@ import * as THREE from "three"
 import GUI from "lil-gui"
 import World from "../classes/World"
 import CustomToonMaterial from "./CustomToonMaterial"
-import Clouds from "./Clouds"
-
-type SquaresEffect = 'kick' | 'none'
-
-
 
 export default class Squares extends World {
 
@@ -21,16 +16,11 @@ export default class Squares extends World {
     private boxes: THREE.Mesh[] = []
     private mat!: CustomToonMaterial
 
-    private directionalLight!: THREE.DirectionalLight
-    private ambientLight!: THREE.AmbientLight
-    private clouds!: Clouds
-
     private params = {
         count: 8,
         radius: 2,
         boxSize: 0.4,
         groupRotationSpeed: 0.3,
-        groupRotationBoostAmount: 5,
         selfRotationSpeed: 1.2,
         color: 0xffffff,//0x4690D2,
         baseColor: 0x121212,
@@ -41,15 +31,7 @@ export default class Squares extends World {
         ringCount: 8,
         tunnelLength: 200,
         forwardSpeed: 5,
-        beatBoostAmount: 200,
-        beatDuration: 0.5,
-        beatEnabled: true,
     }
-
-    private beatPhase: number = 0
-    private beatCounter: number = 0
-    private accumulatedDistance: number = 0
-    private accumulatedRotation: number = 0
 
     constructor(exp: Experience) {
         super()
@@ -61,22 +43,7 @@ export default class Squares extends World {
 
         this.createMaterial()
         this.createBoxes()
-        this.addLights()
         this.scene.add(this.group)
-
-        this.clouds = new Clouds(this.exp, {
-            x: 0,
-            y: 0,
-            z: -100,
-            clouds: 800,
-            yAmplitude: 8,
-            cloudOpacity: 0.025,
-            blending: THREE.AdditiveBlending,
-            scaleAspect: 5,
-            spreadX: 6,
-            spreadZ: 220,
-            textureKey: 'noise',
-        })
 
         this.setupGUI()
     }
@@ -88,15 +55,6 @@ export default class Squares extends World {
             noiseColor: this.params.noiseColor,
         }, this.params.threshold)
         this.mat.uniforms.noiseDensity.value = this.params.noiseDensity
-    }
-
-    private addLights() {
-        this.directionalLight = new THREE.DirectionalLight(0xffffff, 2)
-        this.directionalLight.position.set(2, 4, 3)
-        this.scene.add(this.directionalLight)
-
-        this.ambientLight = new THREE.AmbientLight(0xffffff, 0.2)
-        this.scene.add(this.ambientLight)
     }
 
     private createBoxes() {
@@ -150,12 +108,6 @@ export default class Squares extends World {
         folder.add(this.params, 'tunnelLength', 5, 200, 1).name('Tunnel Length')
         folder.add(this.params, 'forwardSpeed', 0, 30, 0.1).name('Forward Speed')
         folder.add(this.params, 'groupRotationSpeed', 0, 5, 0.01).name('Group Rotation')
-        folder.add(this.params, 'groupRotationBoostAmount', 0, 50, 0.1).name('Rotation Boost')
-
-        const beatFolder = folder.addFolder('Beat')
-        beatFolder.add(this.params, 'beatEnabled').name('Enabled')
-        beatFolder.add(this.params, 'beatBoostAmount', 0, 1000, 1).name('Boost Amount')
-        beatFolder.add(this.params, 'beatDuration', 0.05, 2, 0.01).name('Duration')
         folder.add(this.params, 'selfRotationSpeed', 0, 10, 0.01).name('Self Spin Speed')
         folder.addColor(this.params, 'color').name('Color').onChange((v: number) => {
             this.mat.uniforms.diffuse.value = new THREE.Color(v)
@@ -177,86 +129,40 @@ export default class Squares extends World {
         this.guiFolder.hide()
     }
 
-    onReady() {
-        this.clouds.createClouds()
-    }
-
     showGUI(v: boolean) {
         v ? this.guiFolder.show() : this.guiFolder.hide()
-        this.clouds.showGUI(v)
     }
 
-    private applyEffect(effect: string) {
-        this.params.beatEnabled = effect === 'kick'
-        this.guiFolder.controllersRecursive().forEach(c => c.updateDisplay())
-    }
-
-    setVisible(v: boolean, effect: string) {
-        if (v) {
-            this.applyEffect(effect)
-        }
+    setVisible(v: boolean) {
         this.group.visible = v
-        this.clouds.setVisible(v)
     }
 
     onBPMBeat() {
-        this.beatCounter++
-        if (this.beatCounter % 2 === 0) this.beatPhase = 1.0
+        if (!this.exp.audioManager || !this.exp.bpmManager) return
     }
 
-    private updateMaterial(delta: number) {
-        this.mat.uniforms.time.value += delta * 1000 * this.params.speed
-        this.clouds.update()
-    }
+    update() {
+        this.mat.uniforms.time.value += this.exp.time.delta * this.params.speed
 
-    private updateTunnelSpeed(delta: number) {
-        if (this.beatPhase > 0) {
-            this.beatPhase = Math.max(0, this.beatPhase - delta / this.params.beatDuration)
-        }
-        const easeOutCirc = (x: number) => Math.sqrt(1 - Math.pow(x - 1, 2))
-        const speedBoost = this.params.beatEnabled && this.beatPhase > 0
-            ? this.params.beatBoostAmount * (1 - easeOutCirc(1 - this.beatPhase))
-            : 0
+        const t = this.exp.time.elapsedTime / 1000
 
-        this.accumulatedDistance += (this.params.forwardSpeed + speedBoost) * delta
-    }
+        this.group.rotation.z = t * this.params.groupRotationSpeed
 
-    private updateRings() {
         const spacing = this.params.tunnelLength / this.params.ringCount
         const nearClip = 5
+
         for (let r = 0; r < this.rings.length; r++) {
-            const progress = (this.accumulatedDistance + r * spacing) % this.params.tunnelLength
+            const phase = r * spacing
+            const progress = (t * this.params.forwardSpeed + phase) % this.params.tunnelLength
             this.rings[r].position.z = progress - this.params.tunnelLength + nearClip
         }
-    }
 
-    private updateGroupRotation(delta: number) {
-        const easeOutCirc = (x: number) => Math.sqrt(1 - Math.pow(x - 1, 2))
-        const rotBoost = this.params.beatEnabled && this.beatPhase > 0
-            ? this.params.groupRotationBoostAmount * (1 - easeOutCirc(1 - this.beatPhase))
-            : 0
-        this.accumulatedRotation += (this.params.groupRotationSpeed + rotBoost) * delta
-        this.group.rotation.z = this.accumulatedRotation
-    }
-
-    private updateBoxRotations(t: number) {
         for (const box of this.boxes) {
             const o = box.userData.rotOffset
             box.rotation.x = t * this.params.selfRotationSpeed + o
             box.rotation.y = t * this.params.selfRotationSpeed * 0.7 + o
             box.rotation.z = t * this.params.selfRotationSpeed * 0.5 + o
         }
-    }
-
-    update() {
-        const delta = this.exp.time.delta / 1000
-        const t = this.exp.time.elapsedTime / 1000
-
-        this.updateMaterial(delta)
-        this.updateTunnelSpeed(delta)
-        this.updateRings()
-        this.updateGroupRotation(delta)
-        this.updateBoxRotations(t)
     }
 
     leave() {
@@ -269,9 +175,6 @@ export default class Squares extends World {
         this.boxes = []
         this.rings = []
         this.scene.remove(this.group)
-        this.scene.remove(this.directionalLight)
-        this.scene.remove(this.ambientLight)
         this.mat.dispose()
-        this.clouds.dispose()
     }
 }

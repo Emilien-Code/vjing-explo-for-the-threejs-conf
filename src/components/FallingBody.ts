@@ -15,9 +15,6 @@ export default class FallingBody extends World {
     private mat!: CustomToonMaterial
     private mixer!: THREE.AnimationMixer
 
-    private directionalLight!: THREE.DirectionalLight
-    private ambientLight!: THREE.AmbientLight
-
     private holder: THREE.Object3D
     private guiFolder!: GUI
     private lightAngle = 0
@@ -30,7 +27,7 @@ export default class FallingBody extends World {
         threshold: 0.7,
         noiseDensity: 1.0,
         lightY: 4,
-        lightOrbitSpeed: 0.01,
+        lightOrbitSpeed: 0.03,
         speed: 0.05,
         beatEnabled: false,
     }
@@ -68,7 +65,6 @@ export default class FallingBody extends World {
             }
             el.layers.enable(6)
         })
-
         poseFalling.position.y += 0.4
         poseFalling.scale.set(0.05, 0.05, 0.05)
         poseFalling.position.z += 3
@@ -76,13 +72,6 @@ export default class FallingBody extends World {
         poseFalling.rotation.y = Math.PI / 4
         poseFalling.rotation.x = Math.PI
         this.scene.add(poseFalling)
-
-        this.directionalLight = new THREE.DirectionalLight(0xffffff, 2)
-        this.directionalLight.position.set(2, 4, 3)
-        this.scene.add(this.directionalLight)
-
-        this.ambientLight = new THREE.AmbientLight(0xffffff, 0.2)
-        this.scene.add(this.ambientLight)
 
         this.mixer = new THREE.AnimationMixer(poseFalling)
         if (this.gltf.animations.length > 0) {
@@ -100,17 +89,12 @@ export default class FallingBody extends World {
         this.guiFolder = this.gui.addFolder('falling_body')
         const folder = this.guiFolder
 
-        // folder.addColor(this.params, 'color')
-        //     .name('Noise Color')
-        //     .onChange((v: number) => { this.mat.uniforms.diffuse.value = new THREE.Color(v) })
-
         folder.addColor(this.params, 'baseColor')
             .name('Base Color')
             .onChange((v: number) => { this.mat.uniforms.baseColor.value = new THREE.Color(v) })
         folder.addColor(this.params, 'noiseColor')
             .name('Noise Color')
             .onChange((v: number) => { this.mat.uniforms.noiseColor.value = new THREE.Color(v) })
-
 
         folder.add(this.params, 'speed', 0, 1, 0.01)
             .name('Noise Speed')
@@ -126,7 +110,6 @@ export default class FallingBody extends World {
 
         folder.add(this.params, 'lightY', -10, 10, 0.1)
             .name('Light Y')
-            .onChange((v: number) => { this.directionalLight.position.y = v })
         folder.add(this.params, 'lightOrbitSpeed', 0, 0.1, 0.001)
             .name('Orbit Speed')
 
@@ -136,7 +119,6 @@ export default class FallingBody extends World {
     showGUI(v: boolean) {
         v ? this.guiFolder.show() : this.guiFolder.hide()
     }
-
     private applyEffect(effect: string) {
         this.params.beatEnabled = effect === 'kick'
 
@@ -146,10 +128,8 @@ export default class FallingBody extends World {
             this.gltf.scene.position.z = -14
         }
     }
-
-
-
     setVisible(v: boolean, effect: string) {
+        this.showGUI(v)
         if (v) {
             this.applyEffect(effect)
         }
@@ -165,20 +145,17 @@ export default class FallingBody extends World {
         this.mixer.update(this.exp.time.delta * 0.00085)
         this.mat.uniforms.time.value += this.exp.time.delta * this.params.speed
         this.gltf.scene.rotation.y += 0.0051
+
         if (!this.params.beatEnabled) this.gltf.scene.position.z -= 0.0051
-
-
 
         this.lightAngle += this.params.lightOrbitSpeed
         const target = this.gltf.scene.position
-        this.directionalLight.position.x = target.x + this.lightRadius * Math.cos(this.lightAngle)
-        this.directionalLight.position.z = target.z + this.lightRadius * Math.sin(this.lightAngle)
-        this.directionalLight.position.y = this.params.lightY
+        const lx = this.lightRadius * Math.cos(this.lightAngle)
+        const ly = this.params.lightY - target.y
+        const lz = this.lightRadius * Math.sin(this.lightAngle)
+        this.mat.uniforms.uLightDir.value.set(lx, ly, lz).normalize()
     }
 
-    leave() {
-        this.scene.remove(this.directionalLight)
-        this.scene.remove(this.ambientLight)
-    }
+    leave() { }
 
 }

@@ -15,9 +15,6 @@ export default class LevitatingBody extends World {
     private mat!: CustomToonMaterial
     private mixer!: THREE.AnimationMixer
 
-    private directionalLight!: THREE.DirectionalLight
-    private ambientLight!: THREE.AmbientLight
-
     private holder: THREE.Object3D
     private guiFolder!: GUI
 
@@ -73,12 +70,7 @@ export default class LevitatingBody extends World {
         poseFalling.rotation.x = Math.PI / 4
         this.scene.add(poseFalling)
 
-        this.directionalLight = new THREE.DirectionalLight(0xffffff, 2)
-        this.directionalLight.position.set(2, 4, 3)
-        this.scene.add(this.directionalLight)
-
-        this.ambientLight = new THREE.AmbientLight(0xffffff, 0.2)
-        this.scene.add(this.ambientLight)
+        this.mat.uniforms.uLightDir.value.set(this.params.lightX, this.params.lightY, this.params.lightZ).normalize()
 
         this.mixer = new THREE.AnimationMixer(poseFalling)
         if (this.gltf.animations.length > 0) {
@@ -96,10 +88,6 @@ export default class LevitatingBody extends World {
         this.guiFolder = this.gui.addFolder('levitating_body')
         const folder = this.guiFolder
 
-        // folder.addColor(this.params, 'color')
-        //     .name('Noise Color')
-        //     .onChange((v: number) => { this.mat.uniforms.diffuse.value = new THREE.Color(v) })
-
         folder.addColor(this.params, 'baseColor')
             .name('Base Color')
             .onChange((v: number) => { this.mat.uniforms.baseColor.value = new THREE.Color(v) })
@@ -115,15 +103,12 @@ export default class LevitatingBody extends World {
             .name('Noise Density')
             .onChange((v: number) => { this.mat.uniforms.noiseDensity.value = v })
 
-        folder.add(this.params, 'lightX', -100, 100, 0.1)
-            .name('X')
-            .onChange((v: number) => { this.directionalLight.position.x = v })
-        folder.add(this.params, 'lightY', -100, 100, 0.1)
-            .name('Y')
-            .onChange((v: number) => { this.directionalLight.position.y = v })
-        folder.add(this.params, 'lightZ', -100, 100, 0.1)
-            .name('Z')
-            .onChange((v: number) => { this.directionalLight.position.z = v })
+        const updateLightDir = () => {
+            this.mat.uniforms.uLightDir.value.set(this.params.lightX, this.params.lightY, this.params.lightZ).normalize()
+        }
+        folder.add(this.params, 'lightX', -10, 10, 0.1).name('X').onChange(updateLightDir)
+        folder.add(this.params, 'lightY', -10, 10, 0.1).name('Y').onChange(updateLightDir)
+        folder.add(this.params, 'lightZ', -10, 10, 0.1).name('Z').onChange(updateLightDir)
 
         this.guiFolder.hide()
     }
@@ -144,12 +129,8 @@ export default class LevitatingBody extends World {
     update() {
         this.mixer.update(this.exp.time.delta * 0.00085)
         this.mat.uniforms.time.value += this.exp.time.delta * this.params.speed
-
     }
 
-    leave() {
-        this.scene.remove(this.directionalLight)
-        this.scene.remove(this.ambientLight)
-    }
+    leave() { }
 
 }
