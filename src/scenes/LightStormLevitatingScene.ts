@@ -42,7 +42,6 @@ export default class LightStormLevitatingScene extends World {
 
 
         if (Math.random() > 0.5) {
-            console.log('if')
             this.levitatingBody.gltf.scene.position.x = 0
             this.levitatingBody.gltf.scene.position.y = 0
             this.levitatingBody.gltf.scene.position.z = 0
@@ -50,7 +49,6 @@ export default class LightStormLevitatingScene extends World {
             this.levitatingBody.gltf.scene.rotation.y = Math.PI / 4
             this.levitatingBody.gltf.scene.rotation.x = Math.PI / 4
         } else {
-            console.log('else')
             this.levitatingBody.gltf.scene.position.x = -0.6
             this.levitatingBody.gltf.scene.position.y = 0.4
             this.levitatingBody.gltf.scene.position.z = 0
