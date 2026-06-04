@@ -11,7 +11,7 @@ import sources from "./common/sources";
 // import TowerScene from "./worlds/TowerScene";
 import ParticlesScene from "./worlds/ParticlesScene";
 import BreakDanceScene from "./worlds/BreakDanceScene";
-import GpgpuScene from "./worlds/sphereScene";
+import GpgpuScene from "./worlds/SphereScene";
 import AudioManager from "./utils/managers/AudioManager";
 import BPMManager from "./utils/managers/BPMManager";
 export default class Experience {
