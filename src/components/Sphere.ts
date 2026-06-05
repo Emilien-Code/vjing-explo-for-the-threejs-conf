@@ -116,7 +116,7 @@ export default class Sphere extends World {
         color3: '#dedede',
         elevation: 31,
         elevationIntensity: 1.48,
-        grainAmount: 0.029,
+        grainAmount: 0.052,
         grainDensity: 5.0,
         beatBoostAmount: 59,
         beatDuration: 1.26,
