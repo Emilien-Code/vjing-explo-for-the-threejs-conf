@@ -15,6 +15,8 @@ export default class SquaresFallingScene extends World {
     private squares: Squares
     private fallingBody: FallingBody
     private guiFolder!: GUI
+    private visible = false
+    private effect: string = ""
 
     constructor(exp: Experience) {
         super()
@@ -36,16 +38,17 @@ export default class SquaresFallingScene extends World {
     }
 
     setVisible(v: boolean) {
-        let effect = '';
+        this.visible = v
+        this.effect = '';
         if (v) {
-            effect = EFFECTS[Math.floor(Math.random() * EFFECTS.length)]
+            this.effect = EFFECTS[Math.floor(Math.random() * EFFECTS.length)]
 
 
-            if (effect === "aside") {
+            if (this.effect === "aside") {
 
                 this.exp.camera.instance.position.x = -4.47
-                this.exp.camera.instance.position.y = -0.04
-                this.exp.camera.instance.position.z = 2.56
+                this.exp.camera.instance.position.y = 2.04
+                this.exp.camera.instance.position.z = -5
 
                 this.exp.camera.instance.rotation.x = 0.06
                 this.exp.camera.instance.rotation.y = -0.13
@@ -59,13 +62,12 @@ export default class SquaresFallingScene extends World {
 
                 this.exp.camera.instance.position.x = 0
                 this.exp.camera.instance.position.y = 0
-                this.exp.camera.instance.position.z = -8.5
-
+                this.exp.camera.instance.position.z = -10.5
             }
         }
 
-        this.squares.setVisible(v, effect)
-        this.fallingBody.setVisible(v, effect)
+        this.squares.setVisible(v)
+        this.fallingBody.setVisible(v, this.effect)
     }
 
     showGUI(v: boolean) {
@@ -80,6 +82,16 @@ export default class SquaresFallingScene extends World {
     }
 
     update() {
+        if (!this.visible) return
+
+
+        if (this.effect === "aside") {
+
+            const lookTarget = this.fallingBody.gltf.scene.position.clone()
+            lookTarget.y += 0.8
+            this.exp.camera.instance.lookAt(lookTarget)
+        }
+
         this.squares.update()
         this.fallingBody.update()
     }
