@@ -30,9 +30,9 @@ export default class WaterDancingScene extends World {
     private setupPath() {
         this.curve = new THREE.CatmullRomCurve3([
             new THREE.Vector3(3.76, 2.85, -0.63),
-            new THREE.Vector3(5.08, 1.15, 13.9),
-            new THREE.Vector3(-2.05, 4.68, 0.26),
-            new THREE.Vector3(1.46, 3.45, -0.48),
+            new THREE.Vector3(5.08, 1.15, 6.9),
+            new THREE.Vector3(2.05, 1.68, 0.26),
+            new THREE.Vector3(1.46, 1.45, -0.48),
         ], true)
 
         const geometry = new THREE.TubeGeometry(this.curve, 200, 0.02, 8, true)
