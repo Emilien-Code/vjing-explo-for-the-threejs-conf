@@ -27,7 +27,7 @@ export default class LevitatingBody extends World {
         lightX: 2,
         lightY: 4,
         lightZ: 3,
-        speed: 0.001
+        speed: 0.01
     }
 
     constructor(exp: Experience) {

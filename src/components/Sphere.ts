@@ -110,13 +110,13 @@ export default class Sphere extends World {
     private holder: THREE.Object3D
     private guiFolder!: GUI
     private params = {
-        noiseScale: 20.0,
-        color1: '#424242',
-        color2: '#E9E2B8',
-        color3: '#e6e6e6',
-        elevation: 0,
-        elevationIntensity: 0.4,
-        grainAmount: 0.067,
+        noiseScale: 100,
+        color1: '#5c5c5c',
+        color2: '#000000',
+        color3: '#dedede',
+        elevation: 31,
+        elevationIntensity: 1.48,
+        grainAmount: 0.029,
         grainDensity: 5.0,
         beatBoostAmount: 59,
         beatDuration: 1.26,

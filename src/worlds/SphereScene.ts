@@ -37,11 +37,11 @@ const SCENE_POST_PROCESSING: Record<SceneName, ScenePostProcessingConfig> = {
         glitches: [],
     },
     waterDancing: {
-        constant: { sobel: false, ascii: true, asciiCellSize: 4, rgbShift: false, bloom: false },
+        constant: NO_EFFECT,
         glitches: [
             { sobel: true, ascii: true, asciiCellSize: 4, rgbShift: false, bloom: false },
             { sobel: false, ascii: true, asciiCellSize: 4, rgbShift: false, bloom: true, bloomValue: 0.7 },
-            NO_EFFECT
+            { sobel: false, ascii: true, asciiCellSize: 4, rgbShift: false, bloom: false }
         ],
     },
     lightStormLevitating: {
@@ -172,11 +172,11 @@ export default class GlassScene extends World {
 
     onBPMBeat() {
         if (!this.exp.audioManager || !this.exp.bpmManager) return
-        if (!this.musicReactive) return
-
         SCENE_NAMES.forEach(name => {
             if (this.visibility[name]) this.getScene(name).onBPMBeat()
         })
+        if (!this.musicReactive) return
+
 
         if (Math.random() < 0.5) this.triggerGlitch()
 
