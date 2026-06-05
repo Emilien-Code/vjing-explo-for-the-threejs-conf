@@ -35,7 +35,7 @@ export default class AudioManager {
     this.audioContext = null
 
     this.song = {
-      url: 'https://p.scdn.co/mp3-preview/3be3fb77f5b2945c95e86d4c40ceceac20e5108f?cid=b62f0af3b0d54eca9bb49b99a2fc5820',
+      url: '/03-Digeridoo (2022 Remaster).mp3',
     }
   }
 
