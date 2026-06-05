@@ -28,7 +28,7 @@ export default class World extends EventEmitter {
     resize() {
 
     }
-    onBPMBeat() {
+    onBPMBeat(a: any) {
 
     }
     onMouseMove(e: Event) { }

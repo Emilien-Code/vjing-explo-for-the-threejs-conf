@@ -6,60 +6,60 @@ const sources = [
     {
         name: "cloud",
         type: "texture",
-        path: ["/cloud.png"]
+        path: ["cloud.png"]
     }, {
         name: "noise",
         type: "texture",
-        path: ["/noise3.png"]
+        path: ["noise3.png"]
     }, {
         name: "break_dance_rig",
         type: "GLTFModel",
-        path: ["/break_dance_test.glb"]
+        path: ["break_dance_test.glb"]
     },
     {
         name: "hiphop_dance_rig",
         type: "GLTFModel",
-        path: ["/hip_hop_dance.glb"]
+        path: ["hip_hop_dance.glb"]
     },
     {
         name: "environementMap",
         type: "texture",
-        path: ["/environment-map.jpg"]
+        path: ["environment-map.jpg"]
     },
     {
         name: "water_displacement",
         type: "texture",
-        path: ["/water_displacement.jpeg"]
+        path: ["water_displacement.jpeg"]
     },
     {
         name: "glass",
         type: "GLTFModel",
-        path: ["/glass.glb"]
+        path: ["glass.glb"]
     },
     {
         name: "pose_falling_1",
         type: "GLTFModel",
-        path: ["/pose_falling.glb"]
+        path: ["pose_falling.glb"]
     },
     {
         name: "pose_falling_2",
         type: "GLTFModel",
-        path: ["/pose_falling_2.glb"]
+        path: ["pose_falling_2.glb"]
     },
     {
         name: "dansing_model",
         type: "GLTFModel",
-        path: ["/swing_dance.glb"]
+        path: ["swing_dance.glb"]
     },
     {
         name: "storm_light",
         type: "GLTFModel",
-        path: ["/lightstrike.glb"]
+        path: ["lightstrike.glb"]
     },
     {
         name: "sphere_color",
         type: "texture",
-        path: ["/sphere_color.jpg"]
+        path: ["sphere_color.jpg"]
     },
 
 

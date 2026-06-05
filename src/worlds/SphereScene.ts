@@ -171,7 +171,7 @@ export default class GlassScene extends World {
     }
 
     onBPMBeat() {
-        if (!this.exp.audioManager || !this.exp.bpmManager) return
+        // if (!this.exp.audioManager || !this.exp.bpmManager) return
         SCENE_NAMES.forEach(name => {
             if (this.visibility[name]) this.getScene(name).onBPMBeat()
         })

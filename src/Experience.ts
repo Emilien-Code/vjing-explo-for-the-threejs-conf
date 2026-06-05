@@ -1,5 +1,5 @@
 import * as THREE from "three"
-
+import Analyzer from "./sounds/Analyzer.js"
 import Renderer from "./utils/Renderer";
 import Camera from "./utils/Camera";
 import Sizes from "./utils/Sizes";
@@ -30,10 +30,10 @@ export default class Experience {
     public audioManager: AudioManager | undefined
     public bpmManager: BPMManager | undefined
     public isAudioLoaded = false
-
+    public analyzer: any
     public world: World | null = null; // use the genera Page class type
 
-    constructor(canvas: HTMLCanvasElement) {
+    constructor(canvas: HTMLCanvasElement, a: any) {
 
         this.canvas = canvas;
 
@@ -46,7 +46,7 @@ export default class Experience {
         this.renderer = new Renderer(this);
         this.ressources = new Ressources(sources)
         this.ressources.startLoading()
-
+        this.analyzer = a
 
 
         this.sizes.on("resize", () => this.resize());
@@ -60,22 +60,30 @@ export default class Experience {
     }
 
     public async createAudioManagers() {
-        this.audioManager = new AudioManager()
-        console.log("start")
-        await this.audioManager.loadAudioBuffer()
-        console.log("start")
-        this.bpmManager = new BPMManager()
-        this.bpmManager.addEventListener('beat', () => {
-            this.world && this.world.onBPMBeat()
-        })
-        /**
-         * double check this.audioManager.audio
-         */
-        await this.bpmManager.detectBPM(this.audioManager.audio.buffer)
-        this.audioManager.play()
         this.isAudioLoaded = true
+        this.analyzer.onAudio((a: any) => {
+            if (a.kick > 0.8) {
 
-        console.log("ready")
+                this.world.onBPMBeat(a)
+
+            }
+        })
+        // this.audioManager = new AudioManager()
+        // console.log("start")
+        // await this.audioManager.loadAudioBuffer()
+        // console.log("start")
+        // this.bpmManager = new BPMManager()
+        // this.bpmManager.addEventListener('beat', () => {
+        // this.world && this.world.onBPMBeat()
+        // })
+        // /**
+        //  * double check this.audioManager.audio
+        //  */
+        // await this.bpmManager.detectBPM(this.audioManager.audio.buffer)
+        // this.audioManager.play()
+
+
+        // console.log("ready")
 
 
     }
@@ -111,5 +119,12 @@ export default class Experience {
 }
 
 
-document.querySelector('canvas')
-const app = new Experience(document.querySelector('canvas') as HTMLCanvasElement)
+
+
+
+const a = new Analyzer()
+a.onLoad(() => {
+    document.querySelector('canvas')
+    const app = new Experience(document.querySelector('canvas') as HTMLCanvasElement, a)
+
+})
