@@ -73,8 +73,8 @@ export default class Clouds {
         cloudParams: Omit<cloudParamsType, scaleFactor>
     ) {
         this.cloudParams = {
+            ...cloudParams,
             ...this.cloudParams,
-            ...cloudParams
         }
 
 
@@ -88,6 +88,8 @@ export default class Clouds {
     }
 
     createClouds() {
+
+        console.log("create clouds")
         const {
             blending = THREE.NormalBlending,
             scaleAspect = 1,
@@ -261,8 +263,21 @@ export default class Clouds {
     }
 
     dispose() {
-        this.mesh && this.scene.remove(this.mesh);
+        this.mesh && this.scene.remove(this.mesh)
         this.geometry && this.geometry.dispose()
+        this.material && this.material.dispose()
+        this.mesh = null
+        this.geometry = null
+        this.material = null
+    }
+
+    reconfigure(params: Omit<cloudParamsType, 'scaleFactor'>) {
+        this.dispose()
+        this.cloudParams = {
+            scaleFactor: this.cloudParams.scaleFactor,
+            ...params,
+        }
+        this.createClouds()
     }
 
 }

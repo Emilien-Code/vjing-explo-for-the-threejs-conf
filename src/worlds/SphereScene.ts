@@ -3,6 +3,8 @@ import * as THREE from "three"
 import GUI from "lil-gui"
 import World from "../classes/World"
 import Water from "../components/Water"
+import Clouds from "../components/Clouds"
+import type { cloudParamsType } from "../components/Clouds"
 import SquaresFallingScene from "../scenes/SquaresFallingScene"
 import SphereLevitatingScene from "../scenes/SphereLevitatingScene"
 import WaterDancingScene from "../scenes/WaterDancingScene"
@@ -19,6 +21,31 @@ const SCENE_NAMES: SceneName[] = [
 ]
 
 const NO_EFFECT: PostProcessingPreset = { sobel: false, ascii: false, asciiCellSize: 4, rgbShift: false, bloom: false }
+
+const CLOUDS_PARAMS: Partial<Record<SceneName, Omit<cloudParamsType, 'scaleFactor'>>> = {
+    squaresFalling: {
+        x: 0, y: 0, z: -100,
+        clouds: 800,
+        yAmplitude: 8,
+        cloudOpacity: 0.025,
+        blending: THREE.AdditiveBlending,
+        scaleAspect: 5,
+        spreadX: 6,
+        spreadZ: 220,
+        textureKey: 'noise',
+    },
+    lightStormLevitating: {
+        x: -10, y: 0, z: -10,
+        clouds: 800,
+        yAmplitude: 8,
+        cloudOpacity: 0.01,
+        blending: THREE.AdditiveBlending,
+        scaleAspect: 5,
+        spreadX: 20,
+        spreadZ: 20,
+        textureKey: 'noise',
+    },
+}
 
 type ScenePostProcessingConfig = {
     constant: PostProcessingPreset
@@ -60,6 +87,7 @@ export default class GlassScene extends World {
     private gui: GUI
 
     private water: Water
+    private clouds!: Clouds
 
     private squaresFalling!: SquaresFallingScene
     private sphereLevitating!: SphereLevitatingScene
@@ -101,6 +129,10 @@ export default class GlassScene extends World {
         this.waterDancing = new WaterDancingScene(exp, this.water)
         this.lightStormLevitating = new LightStormLevitatingScene(exp, this.water)
 
+        this.clouds = new Clouds(exp, CLOUDS_PARAMS.squaresFalling!)
+        this.clouds.createClouds()
+        this.clouds.setVisible(false)
+
         this.setupGUI()
     }
 
@@ -118,6 +150,7 @@ export default class GlassScene extends World {
             this.getScene(name).setVisible(false)
             this.visibility[name] = false
         })
+        this.clouds.setVisible(false)
     }
 
     private switchScene(index: number) {
@@ -128,6 +161,12 @@ export default class GlassScene extends World {
         const name = SCENE_NAMES[index]
         this.getScene(name).setVisible(true)
         this.visibility[name] = true
+
+        const cloudParams = CLOUDS_PARAMS[name]
+        if (cloudParams) {
+            this.clouds.reconfigure(cloudParams)
+            this.clouds.setVisible(true)
+        }
 
         this.exp.renderer.applyPostProcessingPreset(SCENE_POST_PROCESSING[name].constant)
         this.gui.controllersRecursive().forEach(c => c.updateDisplay())
@@ -193,6 +232,7 @@ export default class GlassScene extends World {
         this.sphereLevitating.update()
         this.waterDancing.update()
         this.lightStormLevitating.update()
+        this.clouds.update()
     }
 
     leave() { }

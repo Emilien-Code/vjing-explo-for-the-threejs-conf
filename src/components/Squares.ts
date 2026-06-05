@@ -3,7 +3,6 @@ import * as THREE from "three"
 import GUI from "lil-gui"
 import World from "../classes/World"
 import CustomToonMaterial from "./CustomToonMaterial"
-
 export default class Squares extends World {
 
     private exp: Experience
@@ -15,7 +14,6 @@ export default class Squares extends World {
     private rings: THREE.Group[] = []
     private boxes: THREE.Mesh[] = []
     private mat!: CustomToonMaterial
-
     private params = {
         count: 8,
         radius: 2,
@@ -46,6 +44,8 @@ export default class Squares extends World {
         this.scene.add(this.group)
 
         this.setupGUI()
+
+
     }
 
     private createMaterial() {
@@ -142,6 +142,7 @@ export default class Squares extends World {
     }
 
     update() {
+
         this.mat.uniforms.time.value += this.exp.time.delta * this.params.speed
 
         const t = this.exp.time.elapsedTime / 1000
