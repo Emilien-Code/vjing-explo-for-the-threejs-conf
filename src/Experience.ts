@@ -14,6 +14,7 @@ import BreakDanceScene from "./worlds/BreakDanceScene";
 import GpgpuScene from "./worlds/SphereScene";
 import AudioManager from "./utils/managers/AudioManager";
 import BPMManager from "./utils/managers/BPMManager";
+import { exportSceneToGLB } from "./utils/SceneExporter";
 export default class Experience {
 
     public canvas: HTMLCanvasElement;
@@ -55,6 +56,7 @@ export default class Experience {
         this.ressources.on('ready', () => this.onReady())
 
         this.createAudioManagers()
+        this.setupExportGUI()
 
 
     }
@@ -86,6 +88,12 @@ export default class Experience {
         // console.log("ready")
 
 
+    }
+
+    private setupExportGUI() {
+        this.helpers.GUI.add({
+            exportGLB: () => exportSceneToGLB(this.scene, `${this.world?.constructor.name ?? 'scene'}.glb`)
+        }, 'exportGLB').name('Export scene (.glb)')
     }
 
     public createWorld(Exp: World) {
