@@ -118,7 +118,7 @@ export default class Renderer {
     private vignetteShader: THREE.ShaderMaterial
     private asciiPass: AsciiPass
     private rgbShiftPass: ShaderPass
-    private perf!: ThreePerf
+    private perf: ThreePerf | null = null
     private guiFolder!: GUI
 
     private colorCorrectionpowRGB_x = 2.2
@@ -162,12 +162,14 @@ export default class Renderer {
         this.setInstance();
         this.createTweaks()
 
-        this.perf = new ThreePerf({
-            anchorX: 'left',
-            anchorY: 'top',
-            domElement: document.body,
-            renderer: this.instance,
-        })
+        if (window.location.hash.includes('dev')) {
+            this.perf = new ThreePerf({
+                anchorX: 'left',
+                anchorY: 'top',
+                domElement: document.body,
+                renderer: this.instance,
+            })
+        }
     }
 
     public setInstance(strength = 0, r = 0, t = 0): void {
@@ -305,18 +307,18 @@ export default class Renderer {
             this.params.exposure = 20
         }
         this.instance.toneMappingExposure = lerp(this.instance.toneMappingExposure, this.params.exposure, 0.01);
-        this.perf.begin()
+        this.perf?.begin()
         if (this.composer) {
             this.composer.render();
             this.selectiveBloom.update()
             // this.godRaysBloom.update()
-            this.perf.end()
+            this.perf?.end()
             return
         }
 
         this.instance.clear()
         this.instance.render(this.experience.scene, this.camera.instance);
-        this.perf.end()
+        this.perf?.end()
 
 
 
