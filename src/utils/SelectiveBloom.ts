@@ -1,6 +1,7 @@
 import * as THREE from "three"
 import type Experience from "../Experience";
 import { fogPalette, fogSettings } from "../common/colors"
+import type GUI from "lil-gui"
 
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
@@ -24,20 +25,20 @@ export default class SelectiveBloom {
     private renderScene: RenderPass;
     private outputPass: OutputPass;
     private rendererExposure: number
-    private params = {
+    public params = {
         threshold: 0,
         strength: 0.7,
         radius: 0.5,
         exposure: 1,
-        bloom: true
+        bloom: false
     };
 
 
-    constructor(experience: Experience, bloom_scene?: number, properties ?: {
+    constructor(experience: Experience, bloom_scene?: number, properties?: {
         radius?: number
         strength?: number
         threshold?: number
-    }) {
+    }, parentFolder?: GUI) {
         this.experience = experience
         this.scene = this.experience.scene
         this.renderer = this.experience.renderer.instance
@@ -59,6 +60,7 @@ export default class SelectiveBloom {
         this.bloomPass.threshold = this.params.threshold;
         this.bloomPass.strength = this.params.strength;
         this.bloomPass.radius = this.params.radius;
+        this.bloomPass.enabled = false;
 
 
         this.bloomComposer = new EffectComposer(this.renderer);
@@ -106,7 +108,7 @@ export default class SelectiveBloom {
 
         this.outputPass = new OutputPass();
         this.mixPass.needsSwap = true;
-        this.createTweaks()
+        this.createTweaks(parentFolder)
     }
 
     get getBloomPass() {
@@ -127,40 +129,18 @@ export default class SelectiveBloom {
     }
 
 
-    createTweaks() {
+    createTweaks(parentFolder?: GUI) {
+        const root = parentFolder ?? this.experience.helpers.GUI;
+        const folder = root.addFolder('bloom');
 
-
-        const folder = this.experience.helpers.GUI.addFolder(`${this.bloom_scene}`);
-
-        folder.add(this.params, 'threshold', 0.0, 10.0).onChange((value: number) => {
-
-            this.bloomPass.threshold = Number(value);
-
-        });
-
-        folder.add(this.params, 'strength', 0.0, 30.0).onChange((value: number) => {
-
-            this.bloomPass.strength = Number(value);
-
-        });
-
-        folder.add(this.params, 'radius', 0.0, 10.0).step(0.01).onChange((value: number) => {
-
-            this.bloomPass.radius = Number(value);
-
-        });
-
-        folder.add(this.params, 'bloom').step(0.01).onChange((value: boolean) => {
-            //this.instance.toneMappingExposure = value;
-            this.bloomPass.enabled = value
-            // this.setInstance()
-        });
-
-        folder.add(this.params, 'exposure', 0.0, 10.0).step(0.01).onChange((value: number) => {
-            // this.instance.toneMappingExposure = value;
-        });
-
-folder.close()
+        folder.add(this.params, 'bloom').name('enabled')
+            .onChange((value: boolean) => { this.bloomPass.enabled = value; });
+        folder.add(this.params, 'threshold', 0.0, 10.0).name('threshold')
+            .onChange((value: number) => { this.bloomPass.threshold = Number(value); });
+        folder.add(this.params, 'strength', 0.0, 30.0).name('strength')
+            .onChange((value: number) => { this.bloomPass.strength = Number(value); });
+        folder.add(this.params, 'radius', 0.0, 10.0).step(0.01).name('radius')
+            .onChange((value: number) => { this.bloomPass.radius = Number(value); });
     }
 
     darkenNonBloomed(obj: any) {
@@ -188,7 +168,8 @@ folder.close()
     }
 
     restoreMaterial(obj: any) {
-        this.scene.background = new THREE.Color(fogPalette[0])
+        // this.scene.background = new THREE.Color(fogPalette[0])
+        this.scene.background = new THREE.Color(0x000000)
         this.scene.fog && (this.scene.fog.color = new THREE.Color(fogPalette[0]))
         // this.renderer.toneMappingExposure = this.rendererExposure // FONCTIONNE PAS
 

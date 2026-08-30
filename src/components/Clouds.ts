@@ -31,7 +31,18 @@ const cloudShader = {
         }
       `
 }
-export type cloudParamsType = { x: number, y: number, z: number, clouds: number, yAmplitude: number, cloudOpacity: number, scaleFactor: number }
+export type cloudParamsType = {
+    x: number, y: number, z: number,
+    clouds: number,
+    yAmplitude: number,
+    cloudOpacity: number,
+    scaleFactor: number,
+    blending?: THREE.Blending,
+    scaleAspect?: number,
+    spreadX?: number,
+    spreadZ?: number,
+    textureKey?: string,
+}
 
 
 export default class Clouds {
@@ -43,24 +54,27 @@ export default class Clouds {
     private geometry: THREE.PlaneGeometry | null = null
     private mesh: THREE.InstancedMesh | null = null
     private dummy: THREE.Object3D | null = null
+    private visible: boolean = true
+
+    private guiFolder!: GUI
 
     private cloudParams: cloudParamsType = {
-            scaleFactor: 10,
-            clouds: 5000,
-            yAmplitude: 20,
-            cloudOpacity: 0.2,
-            x: 0,
-            y: 0,
-            z: 0,
-        }
+        scaleFactor: 10,
+        clouds: 5000,
+        yAmplitude: 20,
+        cloudOpacity: 0.025,
+        x: 0,
+        y: 0,
+        z: -100,
+    }
 
     constructor(
         experience: Experience,
         cloudParams: Omit<cloudParamsType, scaleFactor>
     ) {
         this.cloudParams = {
+            ...cloudParams,
             ...this.cloudParams,
-            ...cloudParams
         }
 
 
@@ -75,86 +89,81 @@ export default class Clouds {
 
     createClouds() {
 
-        // this.material = new THREE.ShaderMaterial({
+        console.log("create clouds")
+        const {
+            blending = THREE.NormalBlending,
+            scaleAspect = 1,
+            spreadX,
+            spreadZ = 1000,
+            textureKey = 'cloud',
+        } = this.cloudParams
 
-        //     uniforms: {
-
-        //         map: { value: this.experience.ressources.items.cloud },
-
-
-        //         // "fogColor": { type: "c", value: fog.color },
-        //         // "fogNear": { type: "f", value: fog.near },
-        //         // "fogFar": { type: "f", value: fog.far },
-
-        //     },
-        //     vertexShader: cloudShader.vertexShader,
-        //     fragmentShader: cloudShader.fragmentShader,
-        //     depthWrite: false,
-        //     depthTest: false,
-        //     transparent: true,
-        //     side: THREE.DoubleSide
-        // });
-
+        const texture = this.experience.ressources.items[textureKey]
 
         this.material = new THREE.MeshBasicMaterial({
-            map: this.experience.ressources.items.cloud,
+            map: texture,
             transparent: true,
             side: THREE.DoubleSide,
             depthWrite: false,
-            opacity: this.cloudParams.cloudOpacity
-        });
-        // this.material.onBeforeCompile = (shader) => {
-        //     shader.fragmentShader = shader.fragmentShader.replace(
-        //         '#include <dithering_fragment>',//Target ou ce sera appliqué. targetter ailleurs pour que le fog soit quand même calculé (avant sans doute)
-        //         `
-        //         #include <dithering_fragment>
-        //         gl_FragColor.rgb *= vInstanceColor;// Conflit avec le fog car * la valeur du fog
-        //         `
-        //     );
+            blending,
+            opacity: this.cloudParams.cloudOpacity,
+        })
 
-        // }
-
-        this.dummy = new THREE.Object3D();
-
-        this.geometry = new THREE.PlaneGeometry(1, 1, 1);
-
-        this.mesh = new THREE.InstancedMesh(this.geometry, this.material, this.cloudParams.clouds);
-        this.mesh.position.x = this.cloudParams.x
-        this.mesh.position.y = this.cloudParams.y
-        this.mesh.position.z = this.cloudParams.z
-
-        for (let i = 0; i < this.cloudParams.clouds; i++) {
-
-            this.dummy.position.set(
-                getRandomBetween(0, 32),
-                getRandomBetween(0, this.cloudParams.yAmplitude),
-                getRandomBetween(0, 1000)
-            );
-
-            this.dummy.rotation.set(
-                0,
-                Math.random() * Math.PI * 2,
-                0
-            );
-
-            const scale = getRandomBetween(2, this.cloudParams.scaleFactor);
-
-            this.dummy.scale.set(scale, scale, scale);
-            this.dummy.updateMatrix();
-
-            this.mesh.setMatrixAt(i, this.dummy.matrix);
+        if (blending === THREE.AdditiveBlending) {
+            this.material.onBeforeCompile = (shader) => {
+                shader.vertexShader = shader.vertexShader.replace(
+                    '#include <begin_vertex>',
+                    `
+                    #include <begin_vertex>
+                    vec4 wp = instanceMatrix * vec4(transformed, 1.0);
+                    float dist = distance(wp.xyz, cameraPosition.xyz);
+                    float radius = 120.;
+                    float areaFactor = 0.25;
+                    float diff = radius * (1. - areaFactor);
+                    float scale = dist < radius
+                        ? (dist > diff ? 1. - (dist - diff) / (radius - diff) : 1.)
+                        : 0.;
+                    transformed *= scale;
+                    `
+                )
+            }
         }
 
-        // this.mesh.instanceMatrix.needsUpdate = true
+        this.dummy = new THREE.Object3D()
+        this.geometry = new THREE.PlaneGeometry(1, 1, 1)
+        this.mesh = new THREE.InstancedMesh(this.geometry, this.material, this.cloudParams.clouds)
+        this.mesh.position.set(this.cloudParams.x, this.cloudParams.y, this.cloudParams.z)
 
+        for (let i = 0; i < this.cloudParams.clouds; i++) {
+            const xRange = spreadX ?? 32
+            const px = spreadX !== undefined
+                ? getRandomBetween(-xRange, xRange)
+                : getRandomBetween(0, xRange)
 
+            this.dummy.position.set(
+                px,
+                getRandomBetween(-this.cloudParams.yAmplitude, this.cloudParams.yAmplitude),
+                getRandomBetween(0, spreadZ)
+            )
+
+            this.dummy.rotation.set(
+                Math.random() * Math.PI * 2,
+                Math.random() * Math.PI * 2,
+                Math.random() * Math.PI * 2
+            )
+
+            const scale = getRandomBetween(2, this.cloudParams.scaleFactor)
+            this.dummy.scale.set(scale, scale * scaleAspect, scale)
+            this.dummy.updateMatrix()
+            this.mesh.setMatrixAt(i, this.dummy.matrix)
+        }
 
         this.addScene()
     }
 
     createTweaks() {
 
-        const towerFolder = this.gui.addFolder('clouds');
+        const towerFolder = this.guiFolder = this.gui.addFolder('clouds');
         towerFolder.add(
             this.cloudParams,
             'clouds',
@@ -198,31 +207,49 @@ export default class Clouds {
         towerFolder.add(
             this.cloudParams,
             'x',
-            1, 100, 1
+            -100, 100, 1
         ).onChange((e: number) => {
             this.mesh && (this.mesh.position.x = e)
         })
         towerFolder.add(
             this.cloudParams,
             'y',
-            1, 100, 1
+            -100, 100, 1
         ).onChange((e: number) => {
             this.mesh && (this.mesh.position.y = e)
         })
         towerFolder.add(
             this.cloudParams,
             'z',
-            -100, 100, 1
+            -300, 100, 1
         ).onChange((e: number) => {
             this.mesh && (this.mesh.position.z = e)
         })
         towerFolder.close()
     }
+    setVisible(v: boolean) {
+        this.visible = v
+        this.mesh && (this.mesh.visible = v)
+        this.mesh && (this.mesh.material.opacity = v ? this.cloudParams.cloudOpacity : 0)
+    }
+
+    showGUI(v: boolean) {
+        v ? this.guiFolder.show() : this.guiFolder.hide()
+    }
+
     update() {
         if (!this.experience.camera.instance) return
+        if (!this.mesh) return
+
+        this.mesh.position.x += Math.sin(this.experience.time.elapsedTime * 0.00005) * 0.001
+        this.mesh.position.y += Math.cos(this.experience.time.elapsedTime * 0.00005) * 0.01
+        // this.mesh.position.z += Math.cos(this.experience.time.elapsedTime * 0.00005) * 0.01
     }
     addScene() {
-        this.mesh && this.experience.scene.add(this.mesh)
+        if (!this.mesh) return
+        this.mesh.visible = this.visible
+        this.experience.scene.add(this.mesh)
+        this.mesh.position.z = this.cloudParams.z
     }
     setPosition(x: number, y: number, z: number) {
         if (!this.mesh) return
@@ -236,8 +263,21 @@ export default class Clouds {
     }
 
     dispose() {
-        this.mesh && this.scene.remove(this.mesh);
+        this.mesh && this.scene.remove(this.mesh)
         this.geometry && this.geometry.dispose()
+        this.material && this.material.dispose()
+        this.mesh = null
+        this.geometry = null
+        this.material = null
+    }
+
+    reconfigure(params: Omit<cloudParamsType, 'scaleFactor'>) {
+        this.dispose()
+        this.cloudParams = {
+            scaleFactor: this.cloudParams.scaleFactor,
+            ...params,
+        }
+        this.createClouds()
     }
 
 }

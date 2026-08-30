@@ -5,6 +5,7 @@ import Sizes from "../utils/Sizes"
 import preferences from "../common/preferences"
 // const lerp=(t,i,e)=>t*(1-e)+i*e
 // const linear = (a, b, t) => (1 - t) * a + t * b;
+import GUI from "lil-gui";
 
 export default class Camera {
     public experience: Experience;
@@ -13,6 +14,8 @@ export default class Camera {
     public canvas: HTMLElement;
     public controls: OrbitControls;
     public instance: THREE.PerspectiveCamera;
+    public enableControls = false;
+    private gui: GUI
 
 
     constructor(experience: Experience) {
@@ -29,6 +32,17 @@ export default class Camera {
 
         // this.controls = new OrbitControls(this.instance, this.canvas)
         // this.setControls()
+
+        this.gui = this.experience.helpers.GUI
+
+        const folder = this.gui.addFolder('controls')
+
+        // folder.add(this, 'enableControls',)
+        //     .name('enable camera controls')
+        //     .onFinishChange(() => {
+        //         this.setControls()
+        //     })
+
     }
 
 
@@ -40,11 +54,15 @@ export default class Camera {
     }
 
     public setControls() {
+        if (!this.enableControls) return
+
         this.controls = new OrbitControls(this.instance, this.canvas)
         this.controls.enableDamping = true
     }
 
     public update() {
+        if (!this.enableControls) return
+
         // this.controls.update()
     }
     // setTargetPosition(p){

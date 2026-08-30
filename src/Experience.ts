@@ -1,5 +1,5 @@
 import * as THREE from "three"
-
+import Analyzer from "./sounds/Analyzer.js"
 import Renderer from "./utils/Renderer";
 import Camera from "./utils/Camera";
 import Sizes from "./utils/Sizes";
@@ -8,11 +8,13 @@ import World from "./classes/World";
 import Helpers from "./utils/Helpers";
 import Ressources from "./utils/Ressources";
 import sources from "./common/sources";
-import Ex1 from "./worlds/ex1";
-import Ex2 from "./worlds/ex2";
-import Ex3 from "./worlds/ex3";
-import TowerScene from "./worlds/TowerScene";
-
+// import TowerScene from "./worlds/TowerScene";
+import ParticlesScene from "./worlds/ParticlesScene";
+import BreakDanceScene from "./worlds/BreakDanceScene";
+import GpgpuScene from "./worlds/SphereScene";
+import AudioManager from "./utils/managers/AudioManager";
+import BPMManager from "./utils/managers/BPMManager";
+import { exportSceneToGLB } from "./utils/SceneExporter";
 export default class Experience {
 
     public canvas: HTMLCanvasElement;
@@ -26,9 +28,13 @@ export default class Experience {
     public helpers: Helpers
     public ressources: Ressources
 
+    public audioManager: AudioManager | undefined
+    public bpmManager: BPMManager | undefined
+    public isAudioLoaded = false
+    public analyzer: any
     public world: World | null = null; // use the genera Page class type
 
-    constructor(canvas: HTMLCanvasElement) {
+    constructor(canvas: HTMLCanvasElement, a: any) {
 
         this.canvas = canvas;
 
@@ -41,12 +47,53 @@ export default class Experience {
         this.renderer = new Renderer(this);
         this.ressources = new Ressources(sources)
         this.ressources.startLoading()
-        this.createWorld(TowerScene)
+        this.analyzer = a
+
 
         this.sizes.on("resize", () => this.resize());
         this.time.on("tick", () => this.update());
         this.time.tick()
         this.ressources.on('ready', () => this.onReady())
+
+        this.createAudioManagers()
+        this.setupExportGUI()
+
+
+    }
+
+    public async createAudioManagers() {
+        this.isAudioLoaded = true
+        this.analyzer.onAudio((a: any) => {
+            if (a.kick > 0.8) {
+
+                this.world.onBPMBeat(a)
+
+            }
+        })
+        // this.audioManager = new AudioManager()
+        // console.log("start")
+        // await this.audioManager.loadAudioBuffer()
+        // console.log("start")
+        // this.bpmManager = new BPMManager()
+        // this.bpmManager.addEventListener('beat', () => {
+        // this.world && this.world.onBPMBeat()
+        // })
+        // /**
+        //  * double check this.audioManager.audio
+        //  */
+        // await this.bpmManager.detectBPM(this.audioManager.audio.buffer)
+        // this.audioManager.play()
+
+
+        // console.log("ready")
+
+
+    }
+
+    private setupExportGUI() {
+        this.helpers.GUI.add({
+            exportGLB: () => exportSceneToGLB(this.scene, `${this.world?.constructor.name ?? 'scene'}.glb`)
+        }, 'exportGLB').name('Export scene (.glb)')
     }
 
     public createWorld(Exp: World) {
@@ -57,7 +104,8 @@ export default class Experience {
 
     }
 
-    onReady(){
+    onReady() {
+        this.createWorld(GpgpuScene)
         this.isReady = true;
         this.world && this.world.onReady()
     }
@@ -70,7 +118,7 @@ export default class Experience {
         this.sizes.viewHeight = Math.tan(this.camera.instance.fov * Math.PI / 180 / 2) * this.camera.instance.position.z * 2;
     }
     public update(): void {
-        if (this.isReady) {
+        if (this.isReady && this.isAudioLoaded) {
             this.camera.update();
             this.renderer.update();
             this.world?.update();
@@ -79,5 +127,12 @@ export default class Experience {
 }
 
 
-document.querySelector('canvas')
-const app = new Experience(document.querySelector('canvas') as HTMLCanvasElement)
+
+
+
+const a = new Analyzer()
+a.onLoad(() => {
+    document.querySelector('canvas')
+    const app = new Experience(document.querySelector('canvas') as HTMLCanvasElement, a)
+
+})

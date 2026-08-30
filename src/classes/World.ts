@@ -5,7 +5,7 @@ export default class World extends EventEmitter {
         super()
     }
 
-    onReady(){}
+    onReady() { }
     enter() {
 
     }
@@ -26,6 +26,9 @@ export default class World extends EventEmitter {
     }
 
     resize() {
+
+    }
+    onBPMBeat(a: any) {
 
     }
     onMouseMove(e: Event) { }

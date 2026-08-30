@@ -12,7 +12,7 @@ export default class AudioAnalyzer {
   private isPlaying = false;
   constructor() {
     this.audio = document.createElement("audio");
-    this.audio.src = "/music.mp3";
+    this.audio.src = "/03-Digeridoo (2022 Remaster).mp3";
     this.audio.volume = 0.2;
     this.audioCtx = new AudioContext();
     this.analyser = this.audioCtx.createAnalyser();
