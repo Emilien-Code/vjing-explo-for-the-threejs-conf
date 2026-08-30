@@ -18,6 +18,14 @@ export default class LightStormLevitatingScene extends World {
     private pathSpeed = 0.02
     private visible = false
 
+    private pathSequences: [number, number][] = [
+        [0.885, 1],
+        [0, 0.32],
+        [0.3, 0.47],
+    ]
+    private currentSequence: [number, number] = this.pathSequences[0]
+    private sequenceStartTime = 0
+
     constructor(exp: Experience, water: Water) {
         super()
         this.exp = exp
@@ -63,6 +71,11 @@ export default class LightStormLevitatingScene extends World {
         this.levitatingBody.setVisible(v)
         this.pathMesh.visible = false
 
+        if (v) {
+            this.currentSequence = this.pathSequences[Math.floor(Math.random() * this.pathSequences.length)]
+            this.sequenceStartTime = this.exp.time.elapsedTime
+        }
+
 
         if (Math.random() > 0.5) {
             this.levitatingBody.gltf.scene.position.x = 0
@@ -98,7 +111,9 @@ export default class LightStormLevitatingScene extends World {
         this.levitatingBody.update()
         if (!this.visible) return
 
-        const t = ((this.exp.time.elapsedTime / 1000) * this.pathSpeed) % 1
+        const [start, end] = this.currentSequence
+        const elapsed = (this.exp.time.elapsedTime - this.sequenceStartTime) / 1000
+        const t = start + ((elapsed * this.pathSpeed) % (end - start))
         const camPos = this.curve.getPoint(t)
         this.exp.camera.instance.position.copy(camPos)
         const lookTarget = this.levitatingBody.gltf.scene.position.clone()
