@@ -123,7 +123,7 @@ export default class FallingBody extends World {
         this.params.beatEnabled = effect === 'kick'
 
         if (effect === 'aside') {
-            this.gltf.scene.position.z = -20
+            this.gltf.scene.position.z = -32.24
         } else {
             this.gltf.scene.position.z = -14
         }

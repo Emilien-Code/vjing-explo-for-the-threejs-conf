@@ -46,6 +46,7 @@ export default class SquaresFallingScene extends World {
 
             if (this.effect === "aside") {
 
+
                 this.exp.camera.instance.position.x = -4.47
                 this.exp.camera.instance.position.y = 2.04
                 this.exp.camera.instance.position.z = -5
@@ -53,6 +54,7 @@ export default class SquaresFallingScene extends World {
                 this.exp.camera.instance.rotation.x = 0.06
                 this.exp.camera.instance.rotation.y = -0.13
                 this.exp.camera.instance.rotation.z = 0.01
+
 
             } else {
 
@@ -89,6 +91,8 @@ export default class SquaresFallingScene extends World {
 
             const lookTarget = this.fallingBody.gltf.scene.position.clone()
             lookTarget.y += 0.8
+
+
             this.exp.camera.instance.lookAt(lookTarget)
         }
 

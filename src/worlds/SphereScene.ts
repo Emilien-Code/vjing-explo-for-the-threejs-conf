@@ -220,7 +220,9 @@ export default class GlassScene extends World {
         if (Math.random() < 0.5) this.triggerGlitch()
 
         if (Math.random() < 1 / 3) {
-            const candidates = SCENE_NAMES.map((_, i) => i).filter(i => i !== this.currentSceneIndex)
+            const candidates = SCENE_NAMES
+                .map((_, i) => i)
+                .filter(i => i !== this.currentSceneIndex && SCENE_NAMES[i] !== 'waterDancing')
             const next = candidates[Math.floor(Math.random() * candidates.length)]
             this.switchScene(next)
         }
