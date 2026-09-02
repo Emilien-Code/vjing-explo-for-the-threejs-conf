@@ -95,8 +95,30 @@ export default class DancingBody extends World {
     private prevTargetData!: Float32Array
 
     public get modelPosition(): THREE.Vector3 { return this.gltf.scene.position }
+    public get bodyCenter(): THREE.Vector3 { return this._bodyCenter }
+    public get feetY(): number { return this.baseGeometry.instance.boundingBox!.min.y }
+
+    private leftFootBone: THREE.Object3D | null = null
+    private rightFootBone: THREE.Object3D | null = null
+    private hipsBone: THREE.Object3D | null = null
+
+    public getLeftFootPosition(target: THREE.Vector3): THREE.Vector3 {
+        if (this.leftFootBone) this.leftFootBone.getWorldPosition(target)
+        return target
+    }
+
+    public getRightFootPosition(target: THREE.Vector3): THREE.Vector3 {
+        if (this.rightFootBone) this.rightFootBone.getWorldPosition(target)
+        return target
+    }
+
+    public getHipsPosition(target: THREE.Vector3): THREE.Vector3 {
+        if (this.hipsBone) this.hipsBone.getWorldPosition(target)
+        return target
+    }
 
     private bodyMaterial: THREE.MeshBasicMaterial
+    private _bodyCenter: THREE.Vector3 = new THREE.Vector3()
     private guiFolder!: GUI
     private params = {
         particleCount: 30000,
@@ -159,6 +181,20 @@ export default class DancingBody extends World {
             }
         })
 
+        model.traverse((child: THREE.Object3D) => {
+            if (!child.name) return
+            if (child.name.endsWith('LeftFoot')) this.leftFootBone = child
+            if (child.name.endsWith('RightFoot')) this.rightFootBone = child
+            if (child.name.endsWith('Hips')) this.hipsBone = child
+        })
+
+        if (!this.leftFootBone || !this.rightFootBone) {
+            console.warn('DancingBody: could not find LeftFoot/RightFoot bones for footstep tracking')
+        }
+        if (!this.hipsBone) {
+            console.warn('DancingBody: could not find Hips bone for body-center tracking')
+        }
+
         this.scene.add(model)
 
         this.mixer = new THREE.AnimationMixer(model)
@@ -218,6 +254,9 @@ export default class DancingBody extends World {
 
         this.baseGeometry.instance.setAttribute('position', new THREE.BufferAttribute(vertices, 3))
         this.baseGeometry.count = this.baseGeometry.instance.attributes.position.count
+
+        this.baseGeometry.instance.computeBoundingBox()
+        this.baseGeometry.instance.boundingBox!.getCenter(this._bodyCenter)
     }
 
     private createMaterial() {
